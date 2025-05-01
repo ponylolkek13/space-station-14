@@ -1,7 +1,10 @@
 using Content.Shared.Actions;
 using Content.Shared.Backmen.Mood;
+using Content.Shared.Backmen.Surgery.Consciousness.Systems;
+using Content.Shared.Backmen.Surgery.Wounds;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Events;
 using Content.Shared.Damage.ForceSay;
 using Content.Shared.Emoting;
 using Content.Shared.Examine;
@@ -19,6 +22,7 @@ using Content.Shared.Sound.Components;
 using Content.Shared.Speech;
 using Content.Shared.StatusEffect;
 using Content.Shared.Stunnable;
+using Content.Shared.Traits.Assorted;
 using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -50,6 +54,7 @@ public sealed partial class SleepingSystem : EntitySystem
         SubscribeLocalEvent<MobStateComponent, SleepActionEvent>(OnSleepAction);
 
         SubscribeLocalEvent<SleepingComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<SleepingComponent, WoundsDeltaChanged>(OnWoundsChanged); // backmen edit
         SubscribeLocalEvent<SleepingComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<SleepingComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<SleepingComponent, SpeakAttemptEvent>(OnSpeakAttempt);
@@ -64,6 +69,8 @@ public sealed partial class SleepingSystem : EntitySystem
         SubscribeLocalEvent<ForcedSleepingComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<SleepingComponent, UnbuckleAttemptEvent>(OnUnbuckleAttempt);
         SubscribeLocalEvent<SleepingComponent, EmoteAttemptEvent>(OnEmoteAttempt);
+
+        SubscribeLocalEvent<SleepingComponent, BeforeForceSayEvent>(OnChangeForceSay, after: new []{typeof(PainNumbnessSystem)});
     }
 
     private void OnUnbuckleAttempt(Entity<SleepingComponent> ent, ref UnbuckleAttemptEvent args)
@@ -219,6 +226,20 @@ public sealed partial class SleepingSystem : EntitySystem
             TryWaking((ent, ent.Comp));
     }
 
+    // backmen edit start
+    /// <summary>
+    /// Wake up on taking an instance of damage at least the value of WakeThreshold.
+    /// </summary>
+    private void OnWoundsChanged(Entity<SleepingComponent> ent, ref WoundsDeltaChanged args)
+    {
+        if (!args.DamageIncreased)
+            return;
+
+        if (args.TotalDelta >= ent.Comp.WakeThreshold)
+            TryWaking((ent, ent.Comp));
+    }
+    // backmen edit end
+
     /// <summary>
     /// In crit, we wake up if we are not being forced to sleep.
     /// And, you can't sleep when dead...
@@ -320,6 +341,11 @@ public sealed partial class SleepingSystem : EntitySystem
     public void OnEmoteAttempt(Entity<SleepingComponent> ent, ref EmoteAttemptEvent args)
     {
         args.Cancel();
+    }
+
+    private void OnChangeForceSay(Entity<SleepingComponent> ent, ref BeforeForceSayEvent args)
+    {
+        args.Prefix = ent.Comp.ForceSaySleepDataset;
     }
 }
 

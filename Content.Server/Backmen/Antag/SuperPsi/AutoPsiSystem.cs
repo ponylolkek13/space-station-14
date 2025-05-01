@@ -4,6 +4,7 @@ using Content.Server.Antag;
 using Content.Server.Backmen.Fugitive;
 using Content.Server.Forensics;
 using Content.Server.IdentityManagement;
+using Content.Server.Mind;
 using Content.Server.RandomMetadata;
 using Content.Server.Salvage.Expeditions;
 using Content.Server.Shuttles.Systems;
@@ -16,6 +17,7 @@ using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Cargo.Components;
 using Content.Shared.CriminalRecords;
+using Content.Shared.Forensics.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Inventory;
 using Content.Shared.Mind.Components;
@@ -46,6 +48,7 @@ public sealed class AutoPsiSystem : EntitySystem
     [Dependency] private readonly IdCardSystem _idCardSystem = default!;
     [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly ISharedPlayerManager _playerMgr = default!;
+    [Dependency] private readonly MindSystem _mind = default!;
 
     public override void Initialize()
     {
@@ -151,7 +154,7 @@ public sealed class AutoPsiSystem : EntitySystem
         {
             // do super psi?
             var rule = _antag.ForceGetGameRuleEnt<SuperPsiRuleComponent>(DefaultSuperPsiRule);
-            if (_antag.GetTargetAntagCount(rule) > rule.Comp.SelectedMinds.Count)
+            if (_antag.GetTargetAntagCount(rule) > rule.Comp.AssignedMinds.Count)
             {
                 args.SpawnResult = SpawnSuperPsi(
                     spawnLoc.Pos,
@@ -178,13 +181,13 @@ public sealed class AutoPsiSystem : EntitySystem
 
             if (component.NameSegments != null)
             {
-                _metaData.SetEntityName(ent, _randomMetadata.GetRandomFromSegments(component.NameSegments, component.NameSeparator), meta);
+                _metaData.SetEntityName(ent, _randomMetadata.GetRandomFromSegments(component.NameSegments, component.NameFormat), meta);
             }
 
             if (component.DescriptionSegments != null)
             {
                 _metaData.SetEntityDescription(ent,
-                    _randomMetadata.GetRandomFromSegments(component.DescriptionSegments, component.DescriptionSeparator), meta);
+                    _randomMetadata.GetRandomFromSegments(component.DescriptionSegments, component.DescriptionFormat), meta);
             }
             RemComp(ent, component);
         }
@@ -269,7 +272,11 @@ public sealed class AutoPsiSystem : EntitySystem
 
     private void OnMindAdded(Entity<AutoPsiComponent> ent, ref MindAddedMessage args)
     {
+        if (!_mind.TryGetSession(args.Mind.Comp, out var session))
+        {
+            return;
+        }
         RemCompDeferred<AutoPsiComponent>(ent);
-        _antag.ForceMakeAntag<SuperPsiRuleComponent>(args.Mind.Comp.Session, DefaultSuperPsiRule);
+        _antag.ForceMakeAntag<SuperPsiRuleComponent>(session, DefaultSuperPsiRule);
     }
 }

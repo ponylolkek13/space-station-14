@@ -15,7 +15,6 @@ namespace Content.Shared.CombatMode;
 public abstract class SharedCombatModeSystem : EntitySystem
 {
     [Dependency] protected readonly IGameTiming Timing = default!;
-    [Dependency] private   readonly INetManager _netMan = default!;
     [Dependency] private   readonly SharedActionsSystem _actionsSystem = default!;
     [Dependency] private   readonly SharedPopupSystem _popup = default!;
     [Dependency] private   readonly SharedMindSystem  _mind = default!;
@@ -51,18 +50,8 @@ public abstract class SharedCombatModeSystem : EntitySystem
         args.Handled = true;
         SetInCombatMode(uid, !component.IsInCombatMode, component);
 
-        // TODO better handling of predicted pop-ups.
-        // This probably breaks if the client has prediction disabled.
-
-        // start-backmen: combatmode
-/*
-        if (!_netMan.IsClient || !Timing.IsFirstTimePredicted)
-            return;
-
         var msg = component.IsInCombatMode ? "action-popup-combat-enabled" : "action-popup-combat-disabled";
-        _popup.PopupEntity(Loc.GetString(msg), args.Performer, args.Performer);
-*/
-        // end-backmen: combatmode
+        _popup.PopupClient(Loc.GetString(msg), args.Performer, args.Performer);
     }
 
 
@@ -104,7 +93,14 @@ public abstract class SharedCombatModeSystem : EntitySystem
     {
         if (value)
         {
-            EnsureComp<MouseRotatorComponent>(uid);
+            var rot = EnsureComp<MouseRotatorComponent>(uid);
+            // BACKMEN EDIT START
+            if (TryComp<CombatModeComponent>(uid, out var comp) && comp.SmoothRotation) // no idea under which (intended) circumstances this can fail (if any), so i'll avoid Comp<>().
+            {
+                rot.AngleTolerance = Angle.FromDegrees(1); // arbitrary
+                rot.Simple4DirMode = false;
+            }
+            // BACKMEN EDIT END
             EnsureComp<NoRotateOnMoveComponent>(uid);
         }
         else

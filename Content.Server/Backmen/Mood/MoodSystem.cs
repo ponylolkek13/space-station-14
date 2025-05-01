@@ -1,4 +1,5 @@
-﻿using Content.Server.Chat.Managers;
+﻿using System.Linq;
+using Content.Server.Chat.Managers;
 using Content.Server.Popups;
 using Content.Shared.Alert;
 using Content.Shared.Backmen.Alert.Click;
@@ -18,6 +19,9 @@ using Timer = Robust.Shared.Timing.Timer;
 using Robust.Shared.Player;
 using Robust.Shared.Configuration;
 using Content.Shared.Backmen.CCVar;
+using Content.Shared.Backmen.Surgery.Wounds;
+using Content.Shared.Backmen.Surgery.Wounds.Systems;
+using Content.Shared.Body.Components;
 using Content.Shared.Examine;
 using Content.Shared.Humanoid;
 
@@ -33,6 +37,7 @@ public sealed class MoodSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly IConfigurationManager _config = default!;
     [Dependency] private readonly IChatManager _chat = default!;
+    [Dependency] private readonly WoundSystem _wound = default!;
 
     [ValidatePrototypeId<AlertCategoryPrototype>]
     private const string MoodCategory = "Mood";
@@ -44,6 +49,7 @@ public sealed class MoodSystem : EntitySystem
         SubscribeLocalEvent<MoodComponent, ComponentStartup>(OnInit);
         SubscribeLocalEvent<MoodComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<MoodComponent, MoodEffectEvent>(OnMoodEffect);
+        SubscribeLocalEvent<MoodComponent, WoundsChangedEvent>(OnWoundsChange);
         SubscribeLocalEvent<MoodComponent, DamageChangedEvent>(OnDamageChange);
         SubscribeLocalEvent<MoodComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMoveSpeed);
         SubscribeLocalEvent<MoodComponent, MoodRemoveEffectEvent>(OnRemoveEffect);
@@ -84,8 +90,7 @@ public sealed class MoodSystem : EntitySystem
 
         foreach (var (_, protoId) in component.CategorisedEffects)
         {
-            if (!_prototypeManager.TryIndex<MoodEffectPrototype>(protoId, out var proto)
-                || proto.Hidden)
+            if (!_prototypeManager.TryIndex<MoodEffectPrototype>(protoId, out var proto))
                 continue;
 
             SendDescToChat(proto, session);
@@ -93,8 +98,7 @@ public sealed class MoodSystem : EntitySystem
 
         foreach (var (protoId, _) in component.UncategorisedEffects)
         {
-            if (!_prototypeManager.TryIndex<MoodEffectPrototype>(protoId, out var proto)
-                || proto.Hidden)
+            if (!_prototypeManager.TryIndex<MoodEffectPrototype>(protoId, out var proto))
                 continue;
 
             SendDescToChat(proto, session);
@@ -155,8 +159,12 @@ public sealed class MoodSystem : EntitySystem
 
     private void OnTraitStartup(EntityUid uid, MoodModifyTraitComponent component, ComponentStartup args)
     {
-        if (component.MoodId != null)
-            RaiseLocalEvent(uid, new MoodEffectEvent($"{component.MoodId}"));
+        if (!TryComp<MoodComponent>(uid, out var mood))
+            return;
+
+        mood.GoodMoodMultiplier = component.GoodMoodMultiplier;
+        mood.BadMoodMultiplier = component.BadMoodMultiplier;
+        RaiseLocalEvent(uid, new MoodEffectEvent($"{component.MoodId}"));
     }
 
     private void OnMoodEffect(EntityUid uid, MoodComponent component, MoodEffectEvent args)
@@ -308,12 +316,18 @@ public sealed class MoodSystem : EntitySystem
             if (!_prototypeManager.TryIndex<MoodEffectPrototype>(protoId, out var prototype))
                 continue;
 
-            amount += prototype.MoodChange;
+            if (prototype.MoodChange > 0)
+                amount += prototype.MoodChange * component.GoodMoodMultiplier;
+            else
+                amount += prototype.MoodChange * component.BadMoodMultiplier;
         }
 
         foreach (var (_, value) in component.UncategorisedEffects)
         {
-            amount += value;
+            if (value > 0)
+                amount += value * component.GoodMoodMultiplier;
+            else
+                amount += value * component.BadMoodMultiplier;
         }
 
         SetMood(uid, amount, component, refresh: true);
@@ -326,7 +340,6 @@ public sealed class MoodSystem : EntitySystem
             && _mobThreshold.TryGetThresholdForState(uid, MobState.Critical, out var critThreshold, mobThresholdsComponent))
             component.CritThresholdBeforeModify = critThreshold.Value;
 
-        EnsureComp<NetMoodComponent>(uid);
         RefreshMood(uid, component);
     }
 
@@ -359,12 +372,8 @@ public sealed class MoodSystem : EntitySystem
 
         component.CurrentMoodLevel = newMoodLevel;
 
-        if (TryComp<NetMoodComponent>(uid, out var mood))
-        {
-            mood.CurrentMoodLevel = component.CurrentMoodLevel;
-            mood.NeutralMoodThreshold = component.MoodThresholds.GetValueOrDefault(MoodThreshold.Neutral);
-        }
-
+        component.NeutralMoodThreshold = component.MoodThresholds.GetValueOrDefault(MoodThreshold.Neutral);
+        Dirty(uid, component);
         UpdateCurrentThreshold(uid, component);
     }
 
@@ -388,10 +397,10 @@ public sealed class MoodSystem : EntitySystem
             || component.CurrentMoodThreshold == component.LastThreshold && !force)
             return;
 
-        var modifier = GetMovementThreshold(component.CurrentMoodThreshold);
+        var modifier = GetMovementThreshold(component.CurrentMoodThreshold, component);
 
         // Modify mob stats
-        if (modifier != GetMovementThreshold(component.LastThreshold))
+        if (modifier != GetMovementThreshold(component.LastThreshold, component))
         {
             _movementSpeedModifier.RefreshMovementSpeedModifiers(uid);
             SetCritThreshold(uid, component, modifier);
@@ -451,14 +460,15 @@ public sealed class MoodSystem : EntitySystem
         return result;
     }
 
-    private int GetMovementThreshold(MoodThreshold threshold)
+    private int GetMovementThreshold(MoodThreshold threshold, MoodComponent component)
     {
-        return threshold switch
-        {
-            >= MoodThreshold.Good => 1,
-            <= MoodThreshold.Meh => -1,
-            _ => 0
-        };
+        if (threshold >= component.BuffsMoodThreshold)
+            return 1;
+
+        if (threshold <= component.ConsMoodThreshold)
+            return -1;
+
+        return 0;
     }
 
     private string GetMoodName(MoodThreshold threshold)
@@ -487,21 +497,51 @@ public sealed class MoodSystem : EntitySystem
         };
     }
 
+    private void OnWoundsChange(EntityUid uid, MoodComponent component, WoundsChangedEvent args)
+    {
+        if (!TryComp<BodyComponent>(uid, out var body))
+            return;
+
+        var rootPart = body.RootContainer.ContainedEntity;
+        if (!rootPart.HasValue)
+            return;
+
+        var bodySeverity =
+            _wound.GetAllWoundableChildren(rootPart.Value)
+                .Aggregate(
+                    FixedPoint2.Zero,
+                    (current, woundable) => current + _wound.GetWoundableSeverityPoint(woundable, woundable));
+
+        if (!_mobThreshold.TryGetPercentageForState(uid, MobState.Critical, bodySeverity, out var damage))
+            return;
+
+        var protoId = "HealthNoDamage";
+
+        foreach (var threshold in component.HealthMoodEffectsThresholds)
+        {
+            if (threshold.Value <= damage)
+                continue;
+
+            protoId = threshold.Key;
+        }
+
+        var ev = new MoodEffectEvent(protoId);
+        RaiseLocalEvent(uid, ev);
+    }
+
     private void OnDamageChange(EntityUid uid, MoodComponent component, DamageChangedEvent args)
     {
         if (!_mobThreshold.TryGetPercentageForState(uid, MobState.Critical, args.Damageable.TotalDamage, out var damage))
             return;
 
         var protoId = "HealthNoDamage";
-        var value = component.HealthMoodEffectsThresholds["HealthNoDamage"];
 
         foreach (var threshold in component.HealthMoodEffectsThresholds)
         {
-            if (threshold.Value <= damage && threshold.Value >= value)
-            {
-                protoId = threshold.Key;
-                value = threshold.Value;
-            }
+            if (threshold.Value <= damage)
+                continue;
+
+            protoId = threshold.Key;
         }
 
         var ev = new MoodEffectEvent(protoId);

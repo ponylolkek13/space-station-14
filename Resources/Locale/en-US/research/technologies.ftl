@@ -35,8 +35,10 @@ research-technology-wave-particle-harnessing = Wave Particle Harnessing
 research-technology-advanced-riot-control = Advanced Riot Control
 research-technology-portable-microfusion-weaponry = Portable Microfusion Weaponry
 research-technology-experimental-battery-ammo = Experimental Battery Ammo
-research-technology-basic-shuttle-armament = Shuttle basic armament
-research-technology-advanced-shuttle-weapon = Advanced shuttle weapons
+research-technology-kinetic-modifications = Kinetic Modifications
+research-technology-basic-shuttle-armament = Shuttle Basic Armament
+research-technology-advanced-shuttle-weapon = Advanced Shuttle Weapons
+research-technology-thermal-weaponry = Thermal Weaponry
 
 research-technology-basic-robotics = Basic Robotics
 research-technology-basic-anomalous-research = Basic Anomalous Research
@@ -48,6 +50,7 @@ research-technology-anomaly-harnessing = Anomaly Core Harnessing
 research-technology-abnormal-artifact-manipulation = Artifact Recycling
 research-technology-gravity-manipulation = Gravity Manipulation
 research-technology-quantum-leaping = Quantum Leaping
+research-technology-bluespace-time-manipulation = Bluespace Time Manipulation
 research-technology-advanced-anomaly-research = Advanced Anomaly Research
 research-technology-rped = Rapid Part Exchange
 research-technology-super-parts = Super Parts
@@ -66,13 +69,8 @@ research-technology-mechanized-treatment = Mechanized Treatment
 research-technology-robotic-cleanliness = Robotic Cleanliness
 research-technology-advanced-cleaning = Advanced Cleaning
 research-technology-meat-manipulation = Meat Manipulation
-research-technology-honk-mech = H.O.N.K. Mech
+research-technology-honk-mech = EXOSUIT: HONK
 research-technology-advanced-spray = Advanced Spray
 research-technology-bluespace-cargo-transport = Bluespace Cargo Transport
 research-technology-quantum-fiber-weaving = Quantum Fiber Weaving
 research-technology-bluespace-chemistry = Bluespace Chemistry
-
-## Shitmed Change
-research-technology-advanced-treatment = Advanced Treatment
-research-technology-high-end-surgery = High End Surgical Tools
-research-technology-cybernetic-enhancements = Cybernetic Enhancements

@@ -21,7 +21,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using System.Linq;
-
+using Content.Shared.Backmen.Smoking;
 using TimedDespawnComponent = Robust.Shared.Spawners.TimedDespawnComponent;
 
 namespace Content.Server.Fluids.EntitySystems;
@@ -107,6 +107,9 @@ public sealed class SmokeSystem : EntitySystem
         foreach (var ent in _physics.GetContactingEntities(args.OtherEntity, body))
         {
             if (exists && ent == entity.Owner)
+                continue;
+
+            if(TerminatingOrDeleted(args.OtherEntity))
                 continue;
 
             if (!_smokeQuery.HasComponent(ent))
@@ -235,7 +238,7 @@ public sealed class SmokeSystem : EntitySystem
             var xform = Transform(uid);
             _physics.SetBodyType(uid, BodyType.Dynamic, fixtures, body, xform);
             _physics.SetCanCollide(uid, true, manager: fixtures, body: body);
-            _broadphase.RegenerateContacts(uid, body, fixtures, xform);
+            _broadphase.RegenerateContacts((uid, body, fixtures, xform));
         }
 
         var timer = EnsureComp<TimedDespawnComponent>(uid);

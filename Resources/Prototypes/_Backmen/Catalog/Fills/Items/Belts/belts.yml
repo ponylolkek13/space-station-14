@@ -3,28 +3,42 @@
   parent: ClothingBeltKatanaSheath
   suffix: Filled
   components:
-  - type: StorageFill
-    contents:
-      - id: Wakizashi
-      - id: Katana
+  - type: ContainerFill
+    containers:
+      item-1:
+      - Katana
+      item-2:
+      - Wakizashi
 
 - type: entity
   id: ClothingBeltSheathFilledOrd
   parent: ClothingBeltOrden
   suffix: Filled
   components:
-  - type: StorageFill
-    contents:
-      - id: OrdenSabre
+  - type: ContainerFill
+    containers:
+      item:
+      - OrdenSabre
 
 - type: entity
   id: ClothingBeltSheathFilledRapier
   parent: ClothingBeltRapier
   suffix: Filled
   components:
-    - type: StorageFill
-      contents:
-        - id: Rapier
+  - type: ContainerFill
+    containers:
+      item:
+      - Rapier
+
+- type: entity
+  id: ClothingBeltSheathFilledMythistophelRapier
+  parent: ClothingBeltRapier
+  suffix: Filled, Рапира Мифистофеля
+  components:
+  - type: ContainerFill
+    containers:
+      item:
+      - MythistophelRapier
 
 - type: entity
   categories: [ HideSpawnMenu ]
@@ -37,6 +51,7 @@
           amount: 2
         - id: MagazineShotgun
           amount: 4
+        - id: ExGrenade
 
 - type: entity
   categories: [ HideSpawnMenu ]
@@ -49,10 +64,10 @@
       - 0,0,3,3
     - type: StorageFill
       contents:
-        - id: SheetSteel
-          amount: 2
-        - id: SheetRGlass
-        - id: MagazinePistol
+        - id: C4
+          amount: 4
+        - id: RCD
+        - id: RCDAmmo
           amount: 2
 
 - type: entity
@@ -62,10 +77,11 @@
   components:
     - type: StorageFill
       contents:
-        - id: MagazineRifle
-          amount: 3
-        - id: MagazinePistol
+        - id: TearGasGrenade
           amount: 2
+        - id: MagazinePistol45ACP
+          amount: 2
+        - id: WeaponPistolACP14
 
 - type: entity
   categories: [ HideSpawnMenu ]
@@ -78,7 +94,35 @@
           amount: 2
         - id: BattleSpaceMedipen
           amount: 2
-        - id: MagazineRifle
+        - id: MagazineRifle556UEG
+          amount: 4
+
+- type: entity
+  categories: [ HideSpawnMenu ]
+  parent: ClothingPounchMTF
+  id: ClothingPounchMTFBattleSMGMP5Filled
+  components:
+    - type: StorageFill
+      contents:
+        - id: BattleMedipen
+          amount: 2
+        - id: BattleSpaceMedipen
+          amount: 2
+        - id: MagazinePistolSubMachineGun9x17
+          amount: 4
+
+- type: entity
+  categories: [ HideSpawnMenu ]
+  parent: ClothingPounchMTF
+  id: ClothingPounchMTFBattleSMGFilled
+  components:
+    - type: StorageFill
+      contents:
+        - id: BattleMedipen
+          amount: 2
+        - id: BattleSpaceMedipen
+          amount: 2
+        - id: MagazinePistolTopSubMachineGun
           amount: 4
 
 - type: entity
@@ -88,14 +132,30 @@
   components:
     - type: StorageFill
       contents:
-        - id: EpinephrineChemistryBottle
+        - id: ChemistryBottleEpinephrine
           amount: 2
-        - id: OmnizineChemistryBottle
+        - id: ChemistryBottleOmnizine
           amount: 3
         - id: SyringeBluespace
         - id: HandheldHealthAnalyzer
-        - id: MagazinePistol
-          amount: 2
+        - id: OmnimedTool
+
+- type: entity
+  id: ClothingBeltMedicalEps11Filled
+  parent: ClothingBeltMedical
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: StorageFill
+    contents:
+      - id: MedicatedSuture
+        amount: 3
+      - id: RegenerativeMesh
+        amount: 1
+      - id: Bloodpack
+        amount: 2
+      - id: Gauze
+      - id: EmergencyMedipen
+        amount: 2
 
 - type: entity
   parent: Medkit
@@ -216,7 +276,7 @@
   components:
     - type: StorageFill
       contents:
-        - id: MagazinePistolSubMachineGun
+        - id: MagazinePistolSubMachineGun9x17
           amount: 6
 
 - type: entity
@@ -226,7 +286,7 @@
   components:
     - type: StorageFill
       contents:
-        - id: MagazineRifle
+        - id: MagazineRifle556UEG
           amount: 6
 
 - type: entity
@@ -295,11 +355,11 @@
   components:
     - type: StorageFill
       contents:
-        - id: OmnizineChemistryBottle
+        - id: ChemistryBottleOmnizine
           amount: 4
-        - id: EpinephrineChemistryBottle
+        - id: ChemistryBottleEpinephrine
           amount: 4
-        - id: EphedrineChemistryBottle
+        - id: ChemistryBottleEphedrine
           amount: 4
         - id: Hypospray
         - id: EmergencyMedipen
@@ -360,7 +420,7 @@
       - 0,0,5,4
     - type: StorageFill
       contents:
-        - id: WeaponDisablerSuper
+        - id: WeaponDominatorNT
         - id: StunbatonSuper
         - id: GrenadeFlashBang
         - id: GrenadeFlashBang
@@ -399,3 +459,20 @@
         - id: SpeedLoaderMagnumAP
           amount: 4
         - id: PinpointerNuclear
+
+- type: entity
+  parent: ClothingBeltInteQDropPouch
+  id: ClothingBeltInteQDropPouchMedicFilled
+  categories: [ HideSpawnMenu ]
+  components:
+    - type: StorageFill
+      contents:
+      - id: Brutepack
+        amount: 2
+      - id: Ointment
+        amount: 2
+      - id: Bloodpack
+      - id: Gauze
+      - id: EmergencyMedipen
+        amount: 3
+      - id: Stimpack

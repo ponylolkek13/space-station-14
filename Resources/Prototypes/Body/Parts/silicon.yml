@@ -3,13 +3,22 @@
   parent: BaseItem
   abstract: true
   components:
+  # backmen edit
+  #- type: WoundableVisuals
+  #  damageOverlayGroups:
+  #    Brute:
+  #      sprite: Mobs/Effects/brute_damage.rsi
+  #      color: "#DD8822"
+  #    Burn:
+  #      # TODO: stuff here
+  #      sprite: Mobs/Effects/burn_damage.rsi # Would have been cool if those were some fancy burns or stuff
+  #  bleedingOverlay: Mobs/Effects/bleeding_damage.rsi # they bleed oil, no? Change this if possible
   - type: Sprite
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: Icon
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: Damageable
     damageContainer: Inorganic
-  - type: BodyPart
   - type: ContainerContainer
     containers:
       bodypart: !type:Container
@@ -34,7 +43,7 @@
 
 - type: entity
   id: LeftArmBorg
-  parent: PartSilicon
+  parent: [BaseLeftArm, PartSilicon]
   name: cyborg left arm
   components:
   - type: BodyPart
@@ -49,10 +58,12 @@
     - Trash
     - BorgArm
     - BorgLArm
+  - type: Item
+    heldPrefix: borg-arm
 
 - type: entity
   id: RightArmBorg
-  parent: PartSilicon
+  parent: [BaseRightArm, PartSilicon]
   name: cyborg right arm
   components:
   - type: BodyPart
@@ -67,15 +78,22 @@
     - Trash
     - BorgArm
     - BorgRArm
+  - type: Item
+    heldPrefix: borg-arm
 
 - type: entity
   id: LeftLegBorg
-  parent: PartSilicon
+  parent: [BaseLeftLeg, PartSilicon]
   name: cyborg left leg
   components:
   - type: BodyPart
     partType: Leg
     symmetry: Left
+    toolName: "a left leg" # Shitmed Change
+    children: # Shitmed Change
+      left foot:
+        id: "left foot"
+        type: Foot
   - type: Sprite
     state: borg_l_leg
   - type: Icon
@@ -85,15 +103,22 @@
     - Trash
     - BorgLLeg
   - type: MovementBodyPart
+  - type: Item
+    heldPrefix: borg-leg
 
 - type: entity
   id: RightLegBorg
-  parent: PartSilicon
+  parent: [BaseRightLeg, PartSilicon]
   name: cyborg right leg
   components:
   - type: BodyPart
     partType: Leg
     symmetry: Right
+    toolName: "a right leg" # Shitmed Change
+    children: # Shitmed Change
+      right foot:
+        id: "right foot"
+        type: Foot
   - type: Sprite
     state: borg_r_leg
   - type: Icon
@@ -103,10 +128,12 @@
     - Trash
     - BorgRLeg
   - type: MovementBodyPart
+  - type: Item
+    heldPrefix: borg-leg
 
 - type: entity
   id: LightHeadBorg
-  parent: PartSilicon
+  parent: [BaseHead, PartSilicon]
   name: cyborg head
   components:
   - type: BodyPart
@@ -119,14 +146,16 @@
     tags:
     - Trash
     - BorgHead
+  - type: Item
+    heldPrefix: borg-head
 
 - type: entity
   id: TorsoBorg
-  parent: PartSilicon
-  name: cyborg torso
+  parent: [BaseChest, PartSilicon]
+  name: cyborg chest
   components:
   - type: BodyPart
-    partType: Torso
+    partType: Chest
   - type: Sprite
     state: borg_chest
   - type: Icon
@@ -135,3 +164,5 @@
     tags:
     - Trash
     - BorgTorso
+  - type: Item
+    heldPrefix: borg-chest

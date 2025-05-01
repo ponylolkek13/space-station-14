@@ -65,7 +65,7 @@ namespace Content.Server.Voting.Managers
                 DirtyCanCallVoteAll();
             });
 
-            foreach (var kvp in _voteTypesToEnableCVars)
+            foreach (var kvp in VoteTypesToEnableCVars)
             {
                 _cfg.OnValueChanged(kvp.Value, _ =>
                 {
@@ -346,7 +346,7 @@ namespace Content.Server.Voting.Managers
             if (!_cfg.GetCVar(CCVars.VoteEnabled))
                 return false;
             // Specific standard vote types can be disabled with cvars.
-            if (voteType != null && _voteTypesToEnableCVars.TryGetValue(voteType.Value, out var cvar) && !_cfg.GetCVar(cvar))
+            if (voteType != null && VoteTypesToEnableCVars.TryGetValue(voteType.Value, out var cvar) && !_cfg.GetCVar(cvar))
                 return false;
 
             // Cannot start vote if vote is already active (as non-admin).
@@ -437,9 +437,16 @@ namespace Content.Server.Voting.Managers
 
                 if (eligibility == VoterEligibility.GhostMinimumPlaytime)
                 {
-                    var playtime = _playtimeManager.GetPlayTimes(player);
-                    if (!playtime.TryGetValue(PlayTimeTrackingShared.TrackerOverall, out TimeSpan overallTime) || overallTime < TimeSpan.FromHours(_cfg.GetCVar(CCVars.VotekickEligibleVoterPlaytime)))
+                    try
+                    {
+                        var playtime = _playtimeManager.GetPlayTimes(player);
+                        if (!playtime.TryGetValue(PlayTimeTrackingShared.TrackerOverall, out TimeSpan overallTime) || overallTime < TimeSpan.FromHours(_cfg.GetCVar(CCVars.VotekickEligibleVoterPlaytime)))
+                            return false;
+                    }
+                    catch (InvalidOperationException)
+                    {
                         return false;
+                    }
 
                     if ((int)_timing.RealTime.Subtract(ghostComp.TimeOfDeath).TotalSeconds < _cfg.GetCVar(CCVars.VotekickEligibleVoterDeathtime))
                         return false;
@@ -448,9 +455,17 @@ namespace Content.Server.Voting.Managers
 
             if (eligibility == VoterEligibility.MinimumPlaytime)
             {
-                var playtime = _playtimeManager.GetPlayTimes(player);
-                if (!playtime.TryGetValue(PlayTimeTrackingShared.TrackerOverall, out TimeSpan overallTime) || overallTime < TimeSpan.FromHours(_cfg.GetCVar(CCVars.VotekickEligibleVoterPlaytime)))
+                try
+                {
+                    var playtime = _playtimeManager.GetPlayTimes(player);
+                    if (!playtime.TryGetValue(PlayTimeTrackingShared.TrackerOverall, out TimeSpan overallTime) ||
+                        overallTime < TimeSpan.FromHours(_cfg.GetCVar(CCVars.VotekickEligibleVoterPlaytime)))
+                        return false;
+                }
+                catch (InvalidOperationException)
+                {
                     return false;
+                }
             }
 
             return true;

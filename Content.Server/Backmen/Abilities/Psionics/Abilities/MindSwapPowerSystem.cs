@@ -54,7 +54,7 @@ public sealed class MindSwapPowerSystem : SharedMindSwapPowerSystem
         SubscribeLocalEvent<MindSwappedComponent, ComponentInit>(OnSwapInit);
     }
 
-    [ValidatePrototypeId<EntityPrototype>] private const string ActionMindSwap = "ActionMindSwap";
+    [ValidatePrototypeId<EntityPrototype>] private const string ActionMindSwap = "ActionMindSwapPsionic";
     [ValidatePrototypeId<EntityPrototype>] private const string ActionMindSwapReturn = "ActionMindSwapReturn";
 
     private void OnInit(EntityUid uid, MindSwapPowerComponent component, ComponentInit args)
@@ -226,13 +226,13 @@ public sealed class MindSwapPowerSystem : SharedMindSwapPowerSystem
 
         if (a)
         {
-            performerSession = performerMind!.Session;
+            _mindSystem.TryGetSession(performer, out performerSession);
             _mindSystem.TransferTo(performerMindId, null, true);
         }
 
         if (b)
         {
-            targetSession = targetMind!.Session;
+            _mindSystem.TryGetSession(target, out targetSession);
             _mindSystem.TransferTo(targetMindId, null, true);
         }
 

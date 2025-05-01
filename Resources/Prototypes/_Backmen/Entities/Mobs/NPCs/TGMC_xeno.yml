@@ -101,6 +101,7 @@
     Blunt: 0.7
     Slash: 0.5
     Piercing: 0.7
+    ArmorPiercing: 0.9
     Heat: 1.8
     Shock: 1.8
     Poison: 0.0
@@ -115,6 +116,7 @@
     Blunt: 0.5
     Slash: 0.3
     Piercing: 0.4
+    ArmorPiercing: 0.7
     Heat: 1.8
     Shock: 1.8
     Poison: 0.0
@@ -212,7 +214,6 @@
     raffle:
       settings: default
   - type: Body
-    prototype: Xeno5hand
   - type: InnateTool
     tools:
       - id: WeaponXenoQueenStun
@@ -220,6 +221,18 @@
       - id: XenoRCD
       - id: WeaponXenoHealingSpit
       - id: PinpointerXeno
+  - type: XenoAcidSpiller
+  - type: SolutionContainerManager
+    solutions:
+      udder:
+        maxVol: 250
+        reagents:
+        - ReagentId: SlermQueenPlus
+          Quantity: 30
+  - type: Udder
+    reagentId: SlermQueenPlus
+    quantityPerUpdate: 25
+    growthDelay: 30
   - type: Destructible
     thresholds:
     - trigger:
@@ -556,7 +569,6 @@
     raffle:
       settings: default
   - type: Body
-    prototype: Xeno5hand
   - type: HTN
     rootTask:
       task: SimpleHumanoidHostileCompound
@@ -871,7 +883,7 @@
   root: torso
   slots:
     torso:
-      part: TorsoReptilian
+      part: ChestReptilian
       connections:
       - hand 1
     hand 1:
@@ -883,7 +895,7 @@
   root: torso
   slots:
     torso:
-      part: TorsoReptilian
+      part: ChestReptilian
       connections:
       - hand 1
       - hand 2
@@ -898,7 +910,7 @@
   root: torso
   slots:
     torso:
-      part: TorsoReptilian
+      part: ChestReptilian
       connections:
       - hand 1
       - hand 2
@@ -916,7 +928,7 @@
   root: torso
   slots:
     torso:
-      part: TorsoReptilian
+      part: ChestReptilian
       connections:
       - hand 1
       - hand 2
@@ -937,7 +949,7 @@
   root: torso
   slots:
     torso:
-      part: TorsoReptilian
+      part: ChestReptilian
       connections:
       - hand 1
       - hand 2
@@ -958,18 +970,17 @@
 - type: entity
   id: XenoArm
   name: "кость ксено"
-  parent: PartSilicon
+  parent: [BaseLeftHand, PartSilicon]
   components:
+  - type: BodyPart
+    partType: Hand
+    symmetry: None
   - type: Sprite
-    netsync: false
     sprite: Mobs/Silicon/drone.rsi
     state: "l_hand"
   - type: Icon
     sprite: Mobs/Silicon/drone.rsi
     state: "l_hand"
-  - type: BodyPart
-    partType: Hand
-    symmetry: Left
 
 # WEAPONS #
 
@@ -1460,6 +1471,7 @@
         Burn: -20
         Airloss: -30
     bloodlossModifier: -20
+    healBleedsThreshold: 30
     healingBeginSound:
       path: "/Audio/Items/Medical/ointment_begin.ogg"
     healingEndSound:
@@ -1726,7 +1738,6 @@
       - state: b_checker_piece
   - type: LimitedCharges
     maxCharges: 50
-    charges: 50
   - type: AutoRecharge
     rechargeDuration: 5
   - type: RCD

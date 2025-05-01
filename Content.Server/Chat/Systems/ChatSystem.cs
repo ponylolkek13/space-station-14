@@ -12,7 +12,7 @@ using Content.Server.Players;
 using Content.Server.Popups;
 using Content.Server.SS220.Chat.Systems;
 using Content.Server.Players.RateLimiting;
-using Content.Server.Speech.Components;
+using Content.Server.Speech.Prototypes;
 using Content.Server.Speech.EntitySystems;
 using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
@@ -364,7 +364,8 @@ public sealed partial class ChatSystem : SharedChatSystem
             announcementSound ??= new SoundPathSpecifier(DefaultAnnouncementSound);
 
             var announcementFilename = _audio.GetSound(announcementSound);
-            var announcementEv = new AnnouncementSpokeEvent(Filter.Broadcast(), announcementFilename, announcementSound?.Params ?? AudioParams.Default.WithVolume(-2f), message);
+            var announcementEv = new AnnouncementSpokeEvent(Filter.Broadcast(), announcementFilename, announcementSound?.Params 
+            ?? AudioParams.Default.WithVolume(-2f), message);
             RaiseLocalEvent(announcementEv);
         }
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Global station announcement from {sender}: {message}");

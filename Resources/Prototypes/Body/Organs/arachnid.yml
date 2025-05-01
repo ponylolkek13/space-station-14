@@ -6,6 +6,13 @@
   - type: Sprite
     sprite: Mobs/Species/Arachnid/organs.rsi
   - type: Organ
+    # backmen edit
+    intCap: 28
+    integrity: 28
+    integrityThresholds:
+      Normal: 28
+      Damaged: 16
+      Destroyed: 0
   - type: Food
   - type: Extractable
     grindableSolutionName: organ
@@ -38,8 +45,16 @@
     size: Small
     heldPrefix: stomach
   - type: Stomach
+    digestionDelay: 30
     updateInterval: 1.5
   - type: Organ
+    # backmen edit
+    intCap: 44
+    integrity: 44
+    integrityThresholds:
+      Normal: 44
+      Damaged: 21
+      Destroyed: 0
     slotId: stomach
   - type: SolutionContainerManager
     solutions:
@@ -65,6 +80,13 @@
       - state: lung-r
   - type: Lung
   - type: Organ
+    # backmen edit
+    intCap: 28
+    integrity: 28
+    integrityThresholds:
+      Normal: 28
+      Damaged: 16
+      Destroyed: 0
     slotId: lungs
   - type: Metabolizer
     updateInterval: 1.5
@@ -100,6 +122,13 @@
     state: heart-on
   - type: Heart
   - type: Organ
+    # backmen edit
+    intCap: 21
+    integrity: 21
+    integrityThresholds:
+      Normal: 21
+      Damaged: 12
+      Destroyed: 0
     slotId: heart
   - type: Metabolizer
     updateInterval: 1.5
@@ -129,6 +158,13 @@
     state: liver
   - type: Liver
   - type: Organ
+    # backmen edit
+    intCap: 28
+    integrity: 28
+    integrityThresholds:
+      Normal: 28
+      Damaged: 16
+      Destroyed: 0
     slotId: liver
   - type: Metabolizer # The liver metabolizes certain chemicals only, like alcohol.
     updateInterval: 1.5
@@ -150,6 +186,15 @@
   description: "Filters toxins from the bloodstream."
   categories: [ HideSpawnMenu ]
   components:
+  - type: Organ # Shitmed
+    # backmen edit
+    intCap: 21
+    integrity: 21
+    integrityThresholds:
+      Normal: 21
+      Damaged: 12
+      Destroyed: 0
+    slotId: kidneys
   - type: Sprite
     layers:
       - state: kidney-l
@@ -175,6 +220,13 @@
       - state: eyeball-l
       - state: eyeball-r
   - type: Organ # Shitmed
+    # backmen edit
+    intCap: 17
+    integrity: 17
+    integrityThresholds:
+      Normal: 17
+      Damaged: 8
+      Destroyed: 0
     slotId: eyes
   - type: Eyes # Shitmed
   - type: Tag # goob edit

@@ -7,7 +7,6 @@ using Content.Server.Backmen.Cloning;
 using Content.Server.Backmen.Economy;
 using Content.Server.Backmen.Fugitive;
 using Content.Server.CartridgeLoader.Cartridges;
-using Content.Server.DetailExaminable;
 using Content.Server.Forensics;
 using Content.Server.GameTicking;
 using Content.Server.Humanoid;
@@ -29,6 +28,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Content.Server.Ghost.Roles.Events;
 using Content.Server.IdentityManagement;
+using Content.Server.Medical.SuitSensors;
 using Content.Server.Mind;
 using Content.Server.Objectives;
 using Content.Server.Objectives.Components;
@@ -40,8 +40,11 @@ using Content.Shared.Access.Components;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;
+using Content.Shared.DetailExaminable;
+using Content.Shared.Forensics.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
+using Content.Shared.Medical.SuitSensor;
 using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
 using Content.Shared.NukeOps;
@@ -159,7 +162,7 @@ public sealed class EvilTwinSystem : EntitySystem
                             }*/
 
 
-                            var targetSession = targetMind?.Session;
+                            _mindSystem.TryGetSession(targetMind, out var targetSession);
                             var targetUserId = targetMind?.UserId ?? targetMind?.OriginalOwnerUserId;
                             if (targetUserId == null)
                             {
@@ -210,6 +213,7 @@ public sealed class EvilTwinSystem : EntitySystem
                         }
 
                         _allEvilTwins.Add((twinMob.Value, mind));
+                        _sensor.SetAllSensors(twinMob.Value, SuitSensorMode.SensorOff);
                         _adminLogger.Add(LogType.Action,
                             LogImpact.Extreme,
                             $"{_entityManager.ToPrettyString(twinMob.Value)} take EvilTwin with target {_entityManager.ToPrettyString(targetUid.Value)}");
@@ -394,7 +398,11 @@ public sealed class EvilTwinSystem : EntitySystem
         foreach (var (mindId, mind) in _allEvilTwins)
         {
             var name = mind.CharacterName;
-            var username = mind.Session?.Name;
+            string? username=null;
+            if (_mindSystem.TryGetSession(mind, out var session))
+            {
+                username = session.Name;
+            }
             var objectives = mind.Objectives.ToArray();
             if (objectives.Length == 0)
             {
@@ -658,6 +666,7 @@ public sealed class EvilTwinSystem : EntitySystem
     [Dependency] private readonly IdentitySystem _identity = default!;
     [Dependency] private readonly EconomySystem _economySystem = default!;
     [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
+    [Dependency] private readonly SuitSensorSystem _sensor = default!;
 
     [ValidatePrototypeId<EntityPrototype>] private const string MindRoleEvilTwin = "MindRoleEvilTwin";
 

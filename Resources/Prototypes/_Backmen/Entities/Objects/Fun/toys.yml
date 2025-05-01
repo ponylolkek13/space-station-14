@@ -52,7 +52,8 @@
     soundHit:
       path: /Audio/Backmen/Items/Toys/khryu.ogg
   - type: Slippery
-    paralyzeTime: 0
+    slipData:
+      paralyzeTime: 0
     slipSound:
       path: /Audio/Backmen/Items/Toys/khryu.ogg
       params:
@@ -216,8 +217,9 @@
     tags:
     - Soap
   - type: Slippery
-    paralyzeTime: 0.7
-    launchForwardsMultiplier: 0.5
+    slipData:
+      paralyzeTime: 0.7
+      launchForwardsMultiplier: 0.5
   - type: StepTrigger
     intersectRatio: 0.2
   - type: CollisionWake
@@ -565,3 +567,21 @@
       sprite: Objects/Weapons/Melee/Throngler-in-hand.rsi
     - type: DisarmMalus
       malus: 0
+
+- type: entity
+  parent: BaseItem
+  id: BalloonInteQ
+  name: InteQ balloon
+  description: Merch, it looks cool.
+  components:
+  - type: Sprite
+    sprite: Backmen/Objects/Fun/inteq_balloon.rsi
+    state: inteq
+  - type: Item
+    size: Small
+    sprite: Backmen/Objects/Fun/inteq_balloon.rsi
+  - type: Damageable
+    damageContainer: Inorganic
+  - type: Tag
+    tags:
+    - Balloon

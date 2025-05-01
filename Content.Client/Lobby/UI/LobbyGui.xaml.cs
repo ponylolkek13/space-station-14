@@ -20,11 +20,11 @@ namespace Content.Client.Lobby.UI
             SetAnchorPreset(MainContainer, LayoutPreset.Wide);
             SetAnchorPreset(Background, LayoutPreset.Wide);
 
-            LobbySong.SetMarkup(Loc.GetString("lobby-state-song-no-song-text"));
+
 
             OptionsButton.OnPressed += _ => _userInterfaceManager.GetUIController<OptionsUIController>().ToggleWindow();
             // BACKMEN Edit Start
-            /*DiscordButton.OnPressed += _ => _stalinManager.RequestUri();*/
+            VotemenuButton.OnPressed += _ => _consoleHost.ExecuteCommand("votemenu");
             ChangelogButton.OnPressed += _ => UserInterfaceManager.GetUIController<ChangelogUIController>().ToggleWindow();
             QuitButton.OnPressed += _ => _consoleHost.ExecuteCommand("disconnect");
             // BACKMEN Edit End

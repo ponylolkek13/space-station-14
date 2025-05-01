@@ -7,11 +7,12 @@
   - type: StorageFill
     contents:
       - id: Hemostat
-      - id: Saw
+      - id: SawElectric # Shitmed Change
       - id: Drill
       - id: Cautery
       - id: Retractor
       - id: Scalpel
+      - id: MedicalStitches
       - id: BoneGel # backmen: surgery
 
 - type: entity
@@ -28,6 +29,7 @@
       - id: Cautery
       - id: Retractor
       - id: ScalpelAdvanced
+      - id: MedicalStitches
       - id: ClothingHandsGlovesNitrile
       - id: EmergencyRollerBedSpawnFolded
       - id: BoneGel # backmen: surgery
@@ -37,14 +39,14 @@
   id: ClothingBackpackDuffelSyndicateFilledShotgun
   categories: [ HideSpawnMenu ]
   name: Bulldog bundle
-  description: "Lean and mean: Contains the popular Bulldog Shotgun, a 12g beanbag drum and 3 12g buckshot drums." #, and a pair of Thermal Imaging Goggles.
+  description: "Lean and mean: Contains the popular Bulldog Shotgun and four 12g buckshot drums." #, and a pair of Thermal Imaging Goggles.
   components:
   - type: StorageFill
     contents:
       - id: WeaponShotgunBulldog
       - id: MagazineShotgun
       - id: MagazineShotgun
-      - id: MagazineShotgunBeanbag
+      - id: MagazineShotgun
 #     - id: ThermalImagingGoggles
 
 - type: entity
@@ -206,6 +208,7 @@
   components:
     - type: StorageFill
       contents:
+        - id: ChameleonPDA
         - id: ClothingUniformJumpsuitChameleon
         - id: ClothingOuterChameleon
         - id: ClothingNeckChameleon
@@ -231,19 +234,6 @@
       - id: ClothingHandsGlovesColorYellowBudget
       - id: DoubleEmergencyOxygenTankFilled
       - id: DoubleEmergencyNitrogenTankFilled
-
-- type: entity
-  parent: ClothingBackpackDuffelSyndicateBundle
-  id: ClothingBackpackDuffelSyndicateRaidBundle
-  name: syndicate raid suit bundle
-  description: "Contains the Syndicate's durable raid armor suit."
-  components:
-  - type: StorageFill
-    contents:
-      - id: ClothingOuterArmorRaid
-      - id: ClothingHeadHelmetRaid
-      - id: ClothingMaskGasSyndicate
-      - id: ClothingHandsGlovesCombat
 
 - type: entity
   parent: ClothingBackpackDuffelSyndicateBundle

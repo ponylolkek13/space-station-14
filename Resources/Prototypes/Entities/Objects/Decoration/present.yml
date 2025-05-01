@@ -194,8 +194,8 @@
         orGroup: GiftPool
       - id: ViolaInstrument
         orGroup: GiftPool
-      - id: ClothingNeckCloakTrans
-        orGroup: GiftPool
+      #- id: ClothingNeckCloakTrans
+      #  orGroup: GiftPool
       - id: ClothingNeckCloakAdmin
         orGroup: GiftPool
       - id: ToySkeleton
@@ -275,6 +275,8 @@
       - id: FoodBoxDonkpocketBerry
         orGroup: GiftPool
       - id: FoodBoxDonkpocketHonk
+        orGroup: GiftPool
+      - id: FoodBoxDonkpocketMoth
         orGroup: GiftPool
       - id: ClothingHandsGlovesColorPurple
         orGroup: GiftPool

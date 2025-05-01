@@ -3,14 +3,16 @@ using Content.Server.Chemistry.EntitySystems;
 using Content.Server.Fluids.Components;
 using Content.Server.Gravity;
 using Content.Server.Popups;
+using Content.Shared.CCVar;
+using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Fluids;
 using Content.Shared.Interaction;
 using Content.Shared.Timing;
 using Content.Shared.Vapor;
-using Content.Shared.Chemistry.EntitySystems;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Configuration;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using System.Numerics;
@@ -30,6 +32,9 @@ public sealed class SpraySystem : EntitySystem
     [Dependency] private readonly VaporSystem _vapor = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+
+    private float _gridImpulseMultiplier;
 
     public override void Initialize()
     {
@@ -37,6 +42,7 @@ public sealed class SpraySystem : EntitySystem
 
         SubscribeLocalEvent<SprayComponent, AfterInteractEvent>(OnAfterInteract);
         SubscribeLocalEvent<SprayComponent, UserActivateInWorldEvent>(OnActivateInWorld);
+        Subs.CVar(_cfg, CCVars.GridImpulseMultiplier, UpdateGridMassMultiplier, true);
     }
 
     private void OnActivateInWorld(Entity<SprayComponent> entity, ref UserActivateInWorldEvent args)
@@ -49,6 +55,11 @@ public sealed class SpraySystem : EntitySystem
         var targetMapPos = _transform.GetMapCoordinates(GetEntityQuery<TransformComponent>().GetComponent(args.Target));
 
         Spray(entity, args.User, targetMapPos);
+    }
+
+    private void UpdateGridMassMultiplier(float value)
+    {
+        _gridImpulseMultiplier = value;
     }
 
     private void OnAfterInteract(Entity<SprayComponent> entity, ref AfterInteractEvent args)
@@ -93,6 +104,54 @@ public sealed class SpraySystem : EntitySystem
         if (diffPos == Vector2.Zero || diffPos == Vector2Helpers.NaN)
             return;
 
+        // Lavaland Shitcode Start - You should spray yourself NOW.
+        // Too lazy to learn this system, so you get a copypaste job!
+        if ((clickMapPos.Position - userMapPos.Position).Length() < 0.5f)
+        {
+            // Split a portion of the solution for the self-spray
+            var adjustedSolutionAmount = entity.Comp.TransferAmount;
+            var newSolution = _solutionContainer.SplitSolution(soln.Value, adjustedSolutionAmount);
+
+            if (newSolution.Volume > 0)
+            {
+                // Spawn vapor with a slight offset to create movement
+                var offset = new Vector2(0.1f, 0); // Small offset to ensure collision
+                var vapor = Spawn(entity.Comp.SprayedPrototype, userMapPos.Offset(offset));
+                var vaporXform = xformQuery.GetComponent(vapor);
+
+                if (TryComp(vapor, out AppearanceComponent? appearance))
+                {
+                    _appearance.SetData(vapor, VaporVisuals.Color, solution.GetColor(_proto).WithAlpha(1f), appearance);
+                    _appearance.SetData(vapor, VaporVisuals.State, true, appearance);
+                }
+
+                var vaporComponent = Comp<VaporComponent>(vapor);
+                var ent = (vapor, vaporComponent);
+                _vapor.TryAddSolution(ent, newSolution);
+
+                // Create a slight movement effect
+                var rotation = Angle.FromDegrees(45);
+                var impulseDirection = -offset.Normalized();
+                var time = 0.5f;  // Shorter duration for self-spray
+                var target = userMapPos.Offset(impulseDirection * 0.5f);  // Small movement distance
+
+                _vapor.Start(ent, vaporXform, impulseDirection * 0.5f, entity.Comp.SprayVelocity, target, time, user);
+
+                if (TryComp<PhysicsComponent>(user, out var body))
+                {
+                    if (_gravity.IsWeightless(user, body))
+                        _physics.ApplyLinearImpulse(user, -impulseDirection.Normalized() * entity.Comp.PushbackAmount, body: body);
+                }
+
+                _audio.PlayPvs(entity.Comp.SpraySound, entity, entity.Comp.SpraySound.Params.WithVariation(0.125f));
+
+                if (useDelay != null)
+                    _useDelay.TryResetDelay((entity, useDelay));
+
+                return;
+            }
+        }
+        // Lavaland Shitcode End
         var diffNorm = diffPos.Normalized();
         var diffLength = diffPos.Length();
 
@@ -156,7 +215,21 @@ public sealed class SpraySystem : EntitySystem
             if (TryComp<PhysicsComponent>(user, out var body))
             {
                 if (_gravity.IsWeightless(user, body))
-                    _physics.ApplyLinearImpulse(user, -impulseDirection.Normalized() * entity.Comp.PushbackAmount, body: body);
+                {
+                    // push back the player
+                    _physics.ApplyLinearImpulse(user, -impulseDirection * entity.Comp.PushbackAmount, body: body);
+                }
+                else
+                {
+                    // push back the grid the player is standing on
+                    var userTransform = Transform(user);
+                    if (userTransform.GridUid == userTransform.ParentUid)
+                    {
+                        // apply both linear and angular momentum depending on the player position
+                        // multiply by a cvar because grid mass is currently extremely small compared to all other masses
+                        _physics.ApplyLinearImpulse(userTransform.GridUid.Value, -impulseDirection * _gridImpulseMultiplier * entity.Comp.PushbackAmount, userTransform.LocalPosition);
+                    }
+                }
             }
         }
 

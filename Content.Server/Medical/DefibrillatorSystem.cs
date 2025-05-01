@@ -8,6 +8,9 @@ using Content.Server.Popups;
 using Content.Server.PowerCell;
 using Content.Server.Traits.Assorted;
 using Content.Shared.Backmen.Chat;
+using Content.Shared.Backmen.Surgery.Consciousness.Components;
+using Content.Shared.Backmen.Surgery.Consciousness.Systems;
+using Content.Shared.Backmen.Targeting;
 using Content.Shared.Damage;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
@@ -22,9 +25,9 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.PowerCell;
 using Content.Shared.Timing;
 using Content.Shared.Toggleable;
+using Content.Shared.Traits.Assorted;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
-using Robust.Shared.Timing;
 
 namespace Content.Server.Medical;
 
@@ -33,21 +36,22 @@ namespace Content.Server.Medical;
 /// </summary>
 public sealed class DefibrillatorSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly ChatSystem _chatManager = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly DoAfterSystem _doAfter = default!;
     [Dependency] private readonly ElectrocutionSystem _electrocution = default!;
     [Dependency] private readonly EuiManager _euiManager = default!;
+    [Dependency] private readonly ISharedPlayerManager _player = default!;
     [Dependency] private readonly ItemToggleSystem _toggle = default!;
-    [Dependency] private readonly RottingSystem _rotting = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private readonly RottingSystem _rotting = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly UseDelaySystem _useDelay = default!;
+    [Dependency] private readonly ConsciousnessSystem _consciousness = default!; // backmen edit:
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -60,6 +64,7 @@ public sealed class DefibrillatorSystem : EntitySystem
     {
         if (args.Handled || args.Target is not { } target)
             return;
+
         args.Handled = TryStartZap(uid, target, args.User, component);
     }
 
@@ -103,7 +108,7 @@ public sealed class DefibrillatorSystem : EntitySystem
             return false;
         }
 
-        if (_timing.CurTime < component.NextZapTime)
+        if (!TryComp(uid, out UseDelayComponent? useDelay) || _useDelay.IsDelayed((uid, useDelay), component.DelayId))
             return false;
 
         if (!TryComp<MobStateComponent>(target, out var mobState))
@@ -182,8 +187,10 @@ public sealed class DefibrillatorSystem : EntitySystem
 
         _audio.PlayPvs(component.ZapSound, uid);
         _electrocution.TryDoElectrocution(target, null, component.ZapDamage, component.WritheDuration, true, ignoreInsulation: true);
-        component.NextZapTime = _timing.CurTime + component.ZapDelay;
-        _appearance.SetData(uid, DefibrillatorVisuals.Ready, false);
+        if (!TryComp<UseDelayComponent>(uid, out var useDelay))
+            return;
+        _useDelay.SetLength((uid, useDelay), component.ZapDelay, component.DelayId);
+        _useDelay.TryResetDelay((uid, useDelay), id: component.DelayId);
 
         ICommonSession? session = null;
 
@@ -193,15 +200,26 @@ public sealed class DefibrillatorSystem : EntitySystem
             _chatManager.TrySendInGameICMessage(uid, Loc.GetString("defibrillator-rotten"),
                 InGameICChatType.Speak, true);
         }
-        else if (HasComp<UnrevivableComponent>(target))
+        else if (TryComp<UnrevivableComponent>(target, out var unrevivable))
         {
-            _chatManager.TrySendInGameICMessage(uid, Loc.GetString("defibrillator-unrevivable"),
+            _chatManager.TrySendInGameICMessage(uid, Loc.GetString(unrevivable.ReasonMessage),
                 InGameICChatType.Speak, true);
         }
         else
         {
             if (_mobState.IsDead(target, mob))
-                _damageable.TryChangeDamage(target, component.ZapHeal, true, origin: uid);
+            {
+                // backmen edit start
+                if (HasComp<ConsciousnessComponent>(target) && _consciousness.TryGetNerveSystem(target, out _))
+                {
+                    _consciousness.RemoveConsciousnessModifier(target, target, "Suffocation");
+                    _consciousness.RemoveConsciousnessModifier(target, target, "DeathThreshold");
+                }
+                else // backmen edit end
+                {
+                    _damageable.TryChangeDamage(target, component.ZapHeal, true, origin: uid, targetPart: TargetBodyPart.Chest); // backmen: surgery
+                }
+            }
 
             if (_mobThreshold.TryGetThresholdForState(target, MobState.Dead, out var threshold) &&
                 TryComp<DamageableComponent>(target, out var damageableComponent) &&
@@ -212,13 +230,13 @@ public sealed class DefibrillatorSystem : EntitySystem
             }
 
             if (_mind.TryGetMind(target, out _, out var mind) &&
-                mind.Session is { } playerSession)
+                _player.TryGetSessionById(mind.UserId, out var playerSession))
             {
                 session = playerSession;
                 // notify them they're being revived.
                 if (mind.CurrentEntity != target)
                 {
-                    _euiManager.OpenEui(new ReturnToBodyEui(mind, _mind), session);
+                    _euiManager.OpenEui(new ReturnToBodyEui(mind, _mind, _player), session);
                 }
 
                 // start-backmen: revenant
@@ -247,21 +265,5 @@ public sealed class DefibrillatorSystem : EntitySystem
         // TODO clean up this clown show above
         var ev = new TargetDefibrillatedEvent(user, (uid, component));
         RaiseLocalEvent(target, ref ev);
-    }
-
-    public override void Update(float frameTime)
-    {
-        base.Update(frameTime);
-
-        var query = EntityQueryEnumerator<DefibrillatorComponent>();
-        while (query.MoveNext(out var uid, out var defib))
-        {
-            if (defib.NextZapTime == null || _timing.CurTime < defib.NextZapTime)
-                continue;
-
-            _audio.PlayPvs(defib.ReadySound, uid);
-            _appearance.SetData(uid, DefibrillatorVisuals.Ready, true);
-            defib.NextZapTime = null;
-        }
     }
 }

@@ -39,7 +39,7 @@ public sealed class BodySystem : SharedBodySystem
     // start-backmen: surgery
     private void OnGibTorsoAttempt(Entity<BodyPartComponent> ent, ref AttemptEntityGibEvent args)
     {
-        if (ent.Comp.PartType == BodyPartType.Torso)
+        if (ent.Comp.PartType == BodyPartType.Chest)
         {
             args.GibType = GibType.Skip;
         }
@@ -80,14 +80,11 @@ public sealed class BodySystem : SharedBodySystem
         // TODO: Predict this probably.
         base.AddPart(bodyEnt, partEnt, slotId);
 
-        if (TryComp<HumanoidAppearanceComponent>(bodyEnt, out var humanoid))
+        var layer = partEnt.Comp.ToHumanoidLayers();
+        if (layer != null)
         {
-            var layer = partEnt.Comp.ToHumanoidLayers();
-            if (layer != null)
-            {
-                _humanoidSystem.SetLayersVisibility(
-                    bodyEnt, new[] { layer.Value }, visible: true, permanent: true, humanoid);
-            }
+            var layers = HumanoidVisualLayersExtension.Sublayers(layer.Value);
+            _humanoidSystem.SetLayersVisibility(bodyEnt.Owner, layers, visible: true);
         }
     }
 
@@ -107,10 +104,7 @@ public sealed class BodySystem : SharedBodySystem
             return;
 
         var layers = HumanoidVisualLayersExtension.Sublayers(layer.Value);
-
-        _humanoidSystem.SetLayersVisibility(
-            bodyEnt, layers, visible: false, permanent: true, humanoid);
-        _appearance.SetData(bodyEnt, layer, true);
+        _humanoidSystem.SetLayersVisibility((bodyEnt, humanoid), layers, visible: false);
     }
 
     public override HashSet<EntityUid> GibBody(
@@ -123,7 +117,9 @@ public sealed class BodySystem : SharedBodySystem
         Angle splatCone = default,
         SoundSpecifier? gibSoundOverride = null,
         GibType gib = GibType.Gib,
-        GibContentsOption contents = GibContentsOption.Drop)
+        GibContentsOption contents = GibContentsOption.Drop,
+        List<string>? allowedContainers = null,
+        List<string>? excludedContainers = null)
     {
         if (!Resolve(bodyId, ref body, logMissing: false)
             || TerminatingOrDeleted(bodyId)
@@ -136,9 +132,9 @@ public sealed class BodySystem : SharedBodySystem
         if (xform.MapUid is null)
             return new HashSet<EntityUid>();
 
-        var gibs = base.GibBody(bodyId, gibOrgans, body, launchGibs: launchGibs,
-            splatDirection: splatDirection, splatModifier: splatModifier, splatCone: splatCone,
-            gib: gib, contents: contents);
+        var gibs = base.GibBody(bodyId, gibOrgans, body, launchGibs: launchGibs, splatDirection: splatDirection,
+            splatModifier: splatModifier, splatCone: splatCone, gib: gib, contents: contents,
+            allowedContainers: allowedContainers, excludedContainers: excludedContainers);
 
         var ev = new BeingGibbedEvent(gibs);
         RaiseLocalEvent(bodyId, ref ev);

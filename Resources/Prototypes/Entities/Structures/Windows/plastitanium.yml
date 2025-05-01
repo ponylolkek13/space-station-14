@@ -48,7 +48,7 @@
     sprite: Structures/Windows/plastitanium_window.rsi
     state: full
   - type: IconSmooth
-    key: windows
+    key: walls
     base: ptwindow
   - type: Airtight
   - type: Fixtures
@@ -121,6 +121,9 @@
     drawdepth: WallTops
     sprite: Structures/Windows/plastitanium_window_diagonal.rsi
     state: state0
+  - type: Tag
+    tags:
+    - Diagonal
   - type: Icon
     sprite: Structures/Windows/plastitanium_window_diagonal.rsi
     state: state0

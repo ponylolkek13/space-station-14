@@ -92,7 +92,7 @@ public sealed class GolemSystem : SharedGolemSystem
         // Add the first emag law
         args.Laws.Laws.Add(new SiliconLaw
         {
-            LawString = Loc.GetString("law-golem-1", ("name", component.Master ?? "----")),
+            LawString = Loc.GetString("golem-law", ("master", component.Master ?? "----")),
             Order = 1
         });
 
@@ -117,6 +117,9 @@ public sealed class GolemSystem : SharedGolemSystem
 
     [ValidatePrototypeId<EntityPrototype>]
     private const string AdminObserver = "AdminObserver";
+
+    [ValidatePrototypeId<LocalizedDatasetPrototype>]
+    private const string GolemNames = "NamesGolem";
     private void OnAfterInteract(EntityUid uid, SoulCrystalComponent component, AfterInteractEvent args)
     {
         if (!args.CanReach)
@@ -136,8 +139,8 @@ public sealed class GolemSystem : SharedGolemSystem
 
         golem.PotentialCrystal = uid;
 
-        var golemName = "golem";
-        if (_prototypes.TryIndex<DatasetPrototype>("names_golem", out var names))
+        var golemName = Loc.GetString("golem-default-name");
+        if (_prototypes.TryIndex<LocalizedDatasetPrototype>(GolemNames, out var names))
             golemName = _robustRandom.Pick(names.Values);
 
         golem.GolemName = golemName;
@@ -201,7 +204,7 @@ public sealed class GolemSystem : SharedGolemSystem
         if (!TryComp<ItemSlotsComponent>(uid, out var slots))
             return;
 
-        if (!_mindSystem.TryGetMind(component.PotentialCrystal.Value, out var mindId, out var mind) || mind.Session == null)
+        if (!_mindSystem.TryGetMind(component.PotentialCrystal.Value, out var mindId, out var mind) || !_mindSystem.TryGetSession(mind, out var sessions))
             return;
 
         if (!_slotsSystem.TryGetSlot(uid, CrystalSlot, out var crystalSlot, slots)) // does it not have a crystal slot?
@@ -228,7 +231,7 @@ public sealed class GolemSystem : SharedGolemSystem
         }
         else
         {
-            if (_prototypes.TryIndex<DatasetPrototype>("names_golem", out var names))
+            if (_prototypes.TryIndex<DatasetPrototype>(GolemNames, out var names))
             {
                 _metaDataSystem.SetEntityName(uid, _robustRandom.Pick(names.Values));
             }

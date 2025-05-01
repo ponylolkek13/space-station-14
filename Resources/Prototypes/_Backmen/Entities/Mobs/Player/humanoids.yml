@@ -75,14 +75,8 @@
     - type: GhostTakeoverAvailable
     - type: RandomMetadata
       nameSegments:
-        - names_wizard_first
-        - names_wizard_last
-    - type: SlowOnDamage
-      speedModifierThresholds:
-        60: 0.8
-        120: 0.6
-        180: 0.4
-        240: 0.2
+        - NamesWizardFirst
+        - NamesWizardLast
     - type: MobState
     - type: MobThresholds
       thresholds:
@@ -158,14 +152,8 @@
         settings: default
     - type: RandomMetadata
       nameSegments:
-        - names_wizard_first
-        - names_wizard_last
-    - type: SlowOnDamage
-      speedModifierThresholds:
-        60: 0.8
-        120: 0.6
-        180: 0.4
-        240: 0.2
+        - NamesWizardFirst
+        - NamesWizardLast
     - type: MobState
     - type: MobThresholds
       thresholds:
@@ -181,9 +169,10 @@
       factions:
         - SimpleHostile
     - type: BibleUser
+    - type: Psionic
+      removable: false
     - type: RandomHumanoidAppearance # Removes random names :(
       randomizeName: false
-
     - type: DispelPower
     - type: MassSleepPower
     - type: MetapsionicPower

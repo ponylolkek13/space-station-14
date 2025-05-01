@@ -6,7 +6,7 @@
   abstract: true
   components:
     - type: TTS
-      voice: Npc1
+      voice: Xenia
     - type: HTN
       rootTask:
         task: SimpleHostileCompound
@@ -76,7 +76,7 @@
     - type: Barotrauma
       damage:
         types:
-          Blunt: 0.03
+          Blunt: 0.1
     - type: PotentialPsionic
     - type: Psionic
       channel: Flesh

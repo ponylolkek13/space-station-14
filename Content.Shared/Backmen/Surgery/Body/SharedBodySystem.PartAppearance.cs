@@ -21,6 +21,7 @@ public partial class SharedBodySystem
 
         SubscribeLocalEvent<BodyPartAppearanceComponent, ComponentStartup>(OnPartAppearanceStartup);
         SubscribeLocalEvent<BodyPartAppearanceComponent, AfterAutoHandleStateEvent>(HandleState);
+
         SubscribeLocalEvent<BodyComponent, BodyPartAddedEvent>(OnPartAttachedToBody);
         SubscribeLocalEvent<BodyComponent, BodyPartRemovedEvent>(OnPartDroppedFromBody);
     }
@@ -32,19 +33,20 @@ public partial class SharedBodySystem
 
             return;
 
-        if (part.OriginalBody == null
-            || TerminatingOrDeleted(part.OriginalBody.Value)
-            || !TryComp(part.OriginalBody.Value, out HumanoidAppearanceComponent? bodyAppearance))
+        if (part.BaseLayerId != null)
         {
             component.ID = part.BaseLayerId;
             component.Type = relevantLayer;
             return;
         }
 
+        if (part.Body is not { Valid: true } body
+            || !TryComp(body, out HumanoidAppearanceComponent? bodyAppearance))
+            return;
+
         var customLayers = bodyAppearance.CustomBaseLayers;
         var spriteLayers = bodyAppearance.BaseLayers;
         component.Type = relevantLayer;
-        component.OriginalBody = part.OriginalBody.Value;
 
         part.Species = bodyAppearance.Species;
 
@@ -83,12 +85,11 @@ public partial class SharedBodySystem
     private string? CreateIdFromPart(HumanoidAppearanceComponent bodyAppearance, HumanoidVisualLayers part)
     {
         var speciesProto = _prototypeManager.Index(bodyAppearance.Species);
-        var baseSprites = _prototypeManager.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet);
+        var baseSprites = _prototypeManager.Index(speciesProto.SpriteSet);
 
-        if (!baseSprites.Sprites.ContainsKey(part))
-            return null;
-
-        return HumanoidVisualLayersExtension.GetSexMorph(part, bodyAppearance.Sex, baseSprites.Sprites[part]);
+        return baseSprites.Sprites.TryGetValue(part, out var value)
+            ? HumanoidVisualLayersExtension.GetSexMorph(part, bodyAppearance.Sex, value)
+            : null;
     }
 
     public void ModifyMarkings(EntityUid uid,
@@ -117,7 +118,7 @@ public partial class SharedBodySystem
 
             var marking = new Marking(markingId, markingColors);
 
-            _humanoid.SetLayerVisibility(uid, targetLayer, true, true, bodyAppearance);
+            _humanoid.SetLayerVisibility(uid, targetLayer, true);
             _humanoid.AddMarking(uid, markingId, markingColors, true, true, bodyAppearance);
             if (!partAppearance.Comp.Markings.ContainsKey(targetLayer))
                 partAppearance.Comp.Markings[targetLayer] = new List<Marking>();
@@ -171,13 +172,15 @@ public partial class SharedBodySystem
         if (component.Color != null)
             _humanoid.SetBaseLayerColor(target, component.Type, component.Color, true, bodyAppearance);
 
-        _humanoid.SetLayerVisibility(target, component.Type, true, true, bodyAppearance);
+        _humanoid.SetLayerVisibility(target, component.Type, true);
 
         foreach (var (visualLayer, markingList) in component.Markings)
         {
-            _humanoid.SetLayerVisibility(target, visualLayer, true, true, bodyAppearance);
+            _humanoid.SetLayerVisibility(target, visualLayer, true);
             foreach (var marking in markingList)
+            {
                 _humanoid.AddMarking(target, marking.MarkingId, marking.MarkingColors, false, true, bodyAppearance);
+            }
         }
 
         Dirty(target, bodyAppearance);
@@ -188,10 +191,12 @@ public partial class SharedBodySystem
         if (!TryComp(entity, out HumanoidAppearanceComponent? bodyAppearance))
             return;
 
+        _humanoid.SetLayerVisibility(entity, component.Type, false);
         foreach (var (visualLayer, markingList) in component.Markings)
         {
-            _humanoid.SetLayerVisibility(entity, visualLayer, false, true, bodyAppearance);
+            _humanoid.SetLayerVisibility(entity, visualLayer, false);
         }
+
         RemoveBodyMarkings(entity, component, bodyAppearance);
     }
 

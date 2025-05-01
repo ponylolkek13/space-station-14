@@ -10,20 +10,22 @@ using Content.Client.Message;
 using Content.Client.Resources;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Client.Voting;
+using Content.Shared.CCVar;
 using Robust.Client;
 using Robust.Client.Console;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
-
 
 namespace Content.Client.Lobby
 {
     public sealed class LobbyState : Robust.Client.State.State
     {
         [Dependency] private readonly IBaseClient _baseClient = default!;
+        [Dependency] private readonly IConfigurationManager _cfg = default!;
         [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
         [Dependency] private readonly IEntityManager _entityManager = default!;
         [Dependency] private readonly IResourceCache _resourceCache = default!;
@@ -55,7 +57,17 @@ namespace Content.Client.Lobby
 
             _voteManager.SetPopupContainer(Lobby.VoteContainer);
             LayoutContainer.SetAnchorPreset(Lobby, LayoutContainer.LayoutPreset.Wide);
-            Lobby.ServerName.Text = _baseClient.GameInfo?.ServerName; //The eye of refactor gazes upon you...
+
+            var lobbyNameCvar = _cfg.GetCVar(CCVars.ServerLobbyName);
+            var serverName = _baseClient.GameInfo?.ServerName ?? string.Empty;
+
+            Lobby.ServerName.Text = string.IsNullOrEmpty(lobbyNameCvar)
+                ? Loc.GetString("ui-lobby-title", ("serverName", serverName))
+                : lobbyNameCvar;
+
+            var width = _cfg.GetCVar(CCVars.ServerLobbyRightPanelWidth);
+            Lobby.RightSide.SetWidth = width;
+
             UpdateLobbyUi();
 
             Lobby.CharacterSetupButton.OnPressed += OnSetupPressed; // BACKMEN EDIT
@@ -122,7 +134,7 @@ namespace Content.Client.Lobby
                 return;
             }
 
-            Lobby!.StationTime.Text =  Loc.GetString("lobby-state-player-status-round-not-started");
+            Lobby!.StationTime.Text = Loc.GetString("lobby-state-player-status-round-not-started");
             string text;
 
             if (_gameTicker.Paused)
@@ -141,6 +153,10 @@ namespace Content.Client.Lobby
                 if (seconds < 0)
                 {
                     text = Loc.GetString(seconds < -5 ? "lobby-state-right-now-question" : "lobby-state-right-now-confirmation");
+                }
+                else if (difference.TotalHours >= 1)
+                {
+                    text = $"{Math.Floor(difference.TotalHours)}:{difference.Minutes:D2}:{difference.Seconds:D2}";
                 }
                 else
                 {
@@ -189,18 +205,18 @@ namespace Content.Client.Lobby
             if (_gameTicker.ServerInfoBlob != null)
             {
                 Lobby!.ServerInfo.SetInfoBlob(_gameTicker.ServerInfoBlob);
-                Lobby!.LabelName.SetMarkup("[font=\"Bedstead\" size=20] BackMen And Ataraxia [/font]"); // BACKMEN EDIT
+                Lobby!.LabelName.SetMarkup("[font=\"Bedstead\" size=20] The Confederation [/font]"); // BACKMEN EDIT
+                    // Don't forget that you're the BACKMEN, that you've always gone against the system and made the best build.
+                    // Don't forget that you're the Ataraxia, that you have always stood for the players to be happy and get what they deserve.
+                    // Glory to BACKMEN, HOP on Ataraxia
                 Lobby!.ChangelogLabel.SetMarkup(Loc.GetString("ui-lobby-changelog")); // BACKMEN EDIT
             }
         }
 
         private void UpdateLobbySoundtrackInfo(LobbySoundtrackChangedEvent ev)
         {
-            if (ev.SoundtrackFilename == null)
-            {
-                Lobby!.LobbySong.SetMarkup(Loc.GetString("lobby-state-song-no-song-text"));
-            }
-            else if (
+
+             if (
                 ev.SoundtrackFilename != null
                 && _resourceCache.TryGetResource<AudioResource>(ev.SoundtrackFilename, out var lobbySongResource)
                 )
@@ -219,7 +235,7 @@ namespace Content.Client.Lobby
                     ("songTitle", title),
                     ("songArtist", artist));
 
-                Lobby!.LobbySong.SetMarkup(markup);
+
             }
         }
 

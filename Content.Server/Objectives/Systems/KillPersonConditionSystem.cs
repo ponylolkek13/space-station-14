@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Server.Objectives.Components;
-using Content.Server.Revolutionary.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Components;
 using Content.Shared.CCVar;
@@ -11,6 +10,8 @@ using Content.Shared.Roles.Jobs;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using System.Linq;
+using Content.Server.Revolutionary.Components;
 
 namespace Content.Server.Objectives.Systems;
 
@@ -21,11 +22,11 @@ public sealed class KillPersonConditionSystem : EntitySystem
 {
     [Dependency] private readonly EmergencyShuttleSystem _emergencyShuttle = default!;
     [Dependency] private readonly IConfigurationManager _config = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly TargetObjectiveSystem _target = default!;
     [Dependency] private readonly SharedRoleSystem _roleSystem = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
     private static readonly ProtoId<DepartmentPrototype> _ccDep = "CentCom";
 
@@ -34,10 +35,6 @@ public sealed class KillPersonConditionSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<KillPersonConditionComponent, ObjectiveGetProgressEvent>(OnGetProgress);
-
-        SubscribeLocalEvent<PickRandomPersonComponent, ObjectiveAssignedEvent>(OnPersonAssigned);
-
-        SubscribeLocalEvent<PickRandomHeadComponent, ObjectiveAssignedEvent>(OnHeadAssigned);
     }
 
     private void OnGetProgress(EntityUid uid, KillPersonConditionComponent comp, ref ObjectiveGetProgressEvent args)
@@ -45,7 +42,7 @@ public sealed class KillPersonConditionSystem : EntitySystem
         if (!_target.GetTarget(uid, out var target))
             return;
 
-        args.Progress = GetProgress(target.Value, comp.RequireDead);
+        args.Progress = GetProgress(target.Value, comp.RequireDead, comp.RequireMaroon);
     }
 
     private void OnPersonAssigned(EntityUid uid, PickRandomPersonComponent comp, ref ObjectiveAssignedEvent args)
@@ -61,8 +58,18 @@ public sealed class KillPersonConditionSystem : EntitySystem
         if (target.Target != null)
             return;
 
-        // no other humans to kill
         var allHumans = _mind.GetAliveHumans(args.MindId);
+
+        // Can't have multiple objectives to kill the same person
+        foreach (var objective in args.Mind.Objectives)
+        {
+            if (HasComp<KillPersonConditionComponent>(objective) && TryComp<TargetObjectiveComponent>(objective, out var kill))
+            {
+                allHumans.RemoveWhere(x => x.Owner == kill.Target);
+            }
+        }
+
+        // no other humans to kill
         if (allHumans.Count == 0)
         {
             args.Cancelled = true;
@@ -148,33 +155,35 @@ public sealed class KillPersonConditionSystem : EntitySystem
         _target.SetTarget(uid, _random.Pick(allHeads), target);
     }
 
-    private float GetProgress(EntityUid target, bool requireDead)
+    private float GetProgress(EntityUid target, bool requireDead, bool requireMaroon)
     {
         // deleted or gibbed or something, counts as dead
         if (!TryComp<MindComponent>(target, out var mind) || mind.OwnedEntity == null)
             return 1f;
 
-        // dead is success
-        if (_mind.IsCharacterDeadIc(mind))
-            return 1f;
+        var targetDead = _mind.IsCharacterDeadIc(mind);
+        var targetOnShuttle = _emergencyShuttle.IsTargetEscaping(mind.OwnedEntity.Value);
+        if (!_config.GetCVar(CCVars.EmergencyShuttleEnabled) && requireMaroon)
+        {
+            requireDead = true;
+            requireMaroon = false;
+        }
 
-        // if the target has to be dead dead then don't check evac stuff
-        if (requireDead)
+        if (requireDead && !targetDead)
             return 0f;
 
-        // if evac is disabled then they really do have to be dead
-        if (!_config.GetCVar(CCVars.EmergencyShuttleEnabled))
+        // Always failed if the target needs to be marooned and the shuttle hasn't even arrived yet
+        if (requireMaroon && !_emergencyShuttle.EmergencyShuttleArrived)
             return 0f;
 
-        // target is escaping so you fail
-        if (_emergencyShuttle.IsTargetEscaping(mind.OwnedEntity.Value))
-            return 0f;
+        // If the shuttle hasn't left, give 50% progress if the target isn't on the shuttle as a "almost there!"
+        if (requireMaroon && !_emergencyShuttle.ShuttlesLeft)
+            return targetOnShuttle ? 0f : 0.5f;
 
-        // evac has left without the target, greentext since the target is afk in space with a full oxygen tank and coordinates off.
-        if (_emergencyShuttle.ShuttlesLeft)
-            return 1f;
+        // If the shuttle has already left, and the target isn't on it, 100%
+        if (requireMaroon && _emergencyShuttle.ShuttlesLeft)
+            return targetOnShuttle ? 0f : 1f;
 
-        // if evac is still here and target hasn't boarded, show 50% to give you an indicator that you are doing good
-        return _emergencyShuttle.EmergencyShuttleArrived ? 0.5f : 0f;
+        return 1f; // Good job you did it woohoo
     }
 }

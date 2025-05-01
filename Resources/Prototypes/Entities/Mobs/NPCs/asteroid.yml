@@ -34,7 +34,7 @@
 
 - type: entity
   id: MobGoliath
-  parent: BaseMobAsteroid
+  parent: [ BaseMobAsteroid, MobBloodstream ]
   name: goliath
   description: A massive beast that uses long tentacles to ensnare its prey, threatening them is not advised under any conditions.
   components:
@@ -52,10 +52,13 @@
   - type: MovementSpeedModifier
     baseWalkSpeed : 2.00
     baseSprintSpeed : 2.00
+  - type: Bloodstream
+    bloodMaxVolume: 350
+    chemicalMaxVolume: 0
   - type: MobThresholds
     thresholds:
       0: Alive
-      250: Dead
+      350: Dead # Goob - 9 PKA shots, 4 crusher destabilised hits
   - type: MeleeWeapon
     soundHit:
       path: "/Audio/Weapons/smash.ogg"
@@ -64,12 +67,14 @@
     animation: WeaponArcPunch
     damage:
       types:
-        Slash: 10
-        Piercing: 10
+        Blunt: 35
+        Slash: 15
+    range: 1.12 # Goob - Allows kinetic crushers to fight them without taking guaranteed damage.
   - type: NpcFactionMember
     factions:
     - SimpleHostile
   - type: HTN
+    constantlyReplan: false
     rootTask:
       task: GoliathCompound
     blackboard:
@@ -90,6 +95,8 @@
     - id: FoodMeatGoliath
       amount: 3
     - id: MaterialGoliathHide1
+      amount: 1
+  - type: Fauna # Lavaland Change
 
 - type: entity
   id: ActionGoliathTentacle
@@ -239,6 +246,7 @@
   - type: Butcherable
     spawned:
     - id: FoodHivelordRemains
+  - type: Fauna # Lavaland Change
 
 - type: entity
   id: MobHivelordBrood

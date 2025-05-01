@@ -1,4 +1,5 @@
 using Content.Shared.ActionBlocker;
+using Content.Shared.Backmen.Targeting;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Climbing.Components;
 using Content.Shared.Climbing.Events;
@@ -62,6 +63,7 @@ public sealed partial class ClimbSystem : VirtualController
         SubscribeLocalEvent<ClimbingComponent, ClimbDoAfterEvent>(OnDoAfter);
         SubscribeLocalEvent<ClimbingComponent, EndCollideEvent>(OnClimbEndCollide);
         SubscribeLocalEvent<ClimbingComponent, BuckledEvent>(OnBuckled);
+        SubscribeLocalEvent<ClimbingComponent, EntGotInsertedIntoContainerMessage>(OnStored);
 
         SubscribeLocalEvent<ClimbableComponent, CanDropTargetEvent>(OnCanDragDropOn);
         SubscribeLocalEvent<ClimbableComponent, GetVerbsEvent<AlternativeVerb>>(AddClimbableVerb);
@@ -148,7 +150,11 @@ public sealed partial class ClimbSystem : VirtualController
 
     private void OnCanDragDropOn(EntityUid uid, ClimbableComponent component, ref CanDropTargetEvent args)
     {
-        if (args.Handled)
+        if (args.Handled || !component.Vaultable)
+            return;
+
+        // If already climbing then don't show outlines.
+        if (TryComp(args.Dragged, out ClimbingComponent? climbing) && climbing.IsClimbing)
             return;
 
         var canVault = args.User == args.Dragged
@@ -230,19 +236,33 @@ public sealed partial class ClimbSystem : VirtualController
         };
 
         _audio.PlayPredicted(comp.StartClimbSound, climbable, user);
-        return _doAfterSystem.TryStartDoAfter(args, out id);
+        var success = _doAfterSystem.TryStartDoAfter(args, out id);
+
+        if (success)
+            climbing.DoAfter = id;
+
+        return success;
+
     }
 
     private void OnDoAfter(EntityUid uid, ClimbingComponent component, ClimbDoAfterEvent args)
     {
+        component.DoAfter = null;
+
         if (args.Handled || args.Cancelled || args.Args.Target == null || args.Args.Used == null)
             return;
+
+        if (_containers.IsEntityInContainer(uid))
+        {
+            args.Handled = true;
+            return;
+        }
 
         Climb(uid, args.Args.User, args.Args.Target.Value, climbing: component);
         args.Handled = true;
     }
 
-    private void Climb(EntityUid uid, EntityUid user, EntityUid climbable, bool silent = false, ClimbingComponent? climbing = null,
+    public void Climb(EntityUid uid, EntityUid user, EntityUid climbable, bool silent = false, ClimbingComponent? climbing = null,
         PhysicsComponent? physics = null, FixturesComponent? fixtures = null, ClimbableComponent? comp = null)
     {
         if (!Resolve(uid, ref climbing, ref physics, ref fixtures, false))
@@ -270,6 +290,7 @@ public sealed partial class ClimbSystem : VirtualController
         var (worldPos, worldRot) = _xformSystem.GetWorldPositionRotation(xform);
         var worldDirection = _xformSystem.GetWorldPosition(climbable) - worldPos;
         var distance = worldDirection.Length();
+
         var parentRot = worldRot - xform.LocalRotation;
         // Need direction relative to climber's parent.
         var localDirection = (-parentRot).RotateVec(worldDirection);
@@ -437,6 +458,12 @@ public sealed partial class ClimbSystem : VirtualController
     /// <param name="reason">The reason why it cant be dropped</param>
     public bool CanVault(ClimbableComponent component, EntityUid user, EntityUid target, out string reason)
     {
+        if (!component.Vaultable)
+        {
+            reason = string.Empty;
+            return false;
+        }
+
         if (!_actionBlockerSystem.CanInteract(user, target))
         {
             reason = Loc.GetString("comp-climbable-cant-interact");
@@ -516,7 +543,27 @@ public sealed partial class ClimbSystem : VirtualController
 
     private void OnBuckled(EntityUid uid, ClimbingComponent component, ref BuckledEvent args)
     {
-        StopClimb(uid, component);
+        StopOrCancelClimb(uid, component);
+    }
+
+    private void OnStored(EntityUid uid, ClimbingComponent component, ref EntGotInsertedIntoContainerMessage args)
+    {
+        StopOrCancelClimb(uid, component);
+    }
+
+    private void StopOrCancelClimb(EntityUid uid, ClimbingComponent component)
+    {
+        if (component.IsClimbing)
+        {
+            StopClimb(uid, component);
+            return;
+        }
+
+        if (component.DoAfter != null)
+        {
+            _doAfterSystem.Cancel(component.DoAfter);
+            component.DoAfter = null;
+        }
     }
 
     private void OnGlassClimbed(EntityUid uid, GlassTableComponent component, ref ClimbedOnEvent args)
@@ -524,7 +571,7 @@ public sealed partial class ClimbSystem : VirtualController
         if (TryComp<PhysicsComponent>(args.Climber, out var physics) && physics.Mass <= component.MassLimit)
             return;
 
-        _damageableSystem.TryChangeDamage(args.Climber, component.ClimberDamage, origin: args.Climber);
+        _damageableSystem.TryChangeDamage(args.Climber, component.ClimberDamage, origin: args.Climber, targetPart: TargetBodyPart.FullLegs); // backmen: surgery
         _damageableSystem.TryChangeDamage(uid, component.TableDamage, origin: args.Climber);
         _stunSystem.TryParalyze(args.Climber, TimeSpan.FromSeconds(component.StunTime), true);
 

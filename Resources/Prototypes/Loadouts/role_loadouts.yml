@@ -10,10 +10,10 @@
   - CaptainJumpsuit
   - CaptainBackpack
   - CaptainOuterClothing
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - Medals #backmen
   - Survival
-  - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
 
@@ -31,16 +31,22 @@
   - HoPOuterClothing
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
 
 # Silicons
 - type: roleLoadout
+  id: JobBorg
+  nameDataset: NamesBorg
+  canCustomizeName: true
+
+- type: roleLoadout
   id: JobStationAi
-  nameDataset: names_ai
+  nameDataset: NamesAI
+  canCustomizeName: true
 
 # Civilian
 - type: roleLoadout
@@ -59,7 +65,6 @@
   - PassengerShoes
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -78,7 +83,6 @@
   - BartenderOuterClothing
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -95,7 +99,6 @@
   - CommonBackpack
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -115,7 +118,6 @@
   - ChefOuterClothing
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -132,7 +134,6 @@
   - CommonBackpack
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -151,7 +152,6 @@
   - Glasses
   - Medals #backmen
   - Survival
-  - Inventory # Corvax-Loadouts
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
@@ -171,7 +171,6 @@
   - ChaplainOuterClothing
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
@@ -216,6 +215,7 @@
 
 - type: roleLoadout
   id: JobClown
+  canCustomizeName: true
   groups:
   - Werx #backmen
   - Niz #backmen
@@ -234,6 +234,7 @@
 
 - type: roleLoadout
   id: JobMime
+  canCustomizeName: true
   groups:
   - Werx #backmen
   - Niz #backmen
@@ -286,6 +287,7 @@
   - Glasses
   - Medals #backmen
   - Survival
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
@@ -342,6 +344,7 @@
   - ChiefEngineerShoes
   - Medals #backmen
   - SurvivalExtended
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
@@ -417,6 +420,7 @@
   - Glasses
   - Medals #backmen
   - Survival
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - GroupSpeciesBreathTool
   - Inventory # Corvax-Loadouts
@@ -477,6 +481,7 @@
   - SecurityOfficerPocket2 #Backmen
   - Medals #backmen
   - SurvivalSecurity
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - SecurityStar
   - GroupSpeciesBreathToolSecurity
@@ -576,9 +581,10 @@
   - ChiefMedicalOfficerOuterClothing
   - ChiefMedicalOfficerNeck
   - ChiefMedicalOfficerShoes
-  - Glasses
   - Medals #backmen
+  - MedicalEyewear
   - SurvivalMedical
+  - SelfDefenceDevices # Ataraxia
   - Trinkets
   - GroupSpeciesBreathToolMedical
   - Inventory # Corvax-Loadouts
@@ -598,8 +604,8 @@
   - MedicalDoctorOuterClothing
   - MedicalShoes
   - MedicalDoctorPDA
-  - Glasses
   - Medals #backmen
+  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - GroupSpeciesBreathToolMedical
@@ -616,6 +622,7 @@
   - MedicalBackpack
   - Glasses
   - Medals #backmen
+  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - GroupSpeciesBreathToolMedical
@@ -654,8 +661,8 @@
   - MedicalBackpack
   - ParamedicOuterClothing
   - ParamedicShoes
-  - Glasses
   - Medals #backmen
+  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - GroupSpeciesBreathToolMedical
@@ -705,7 +712,6 @@
   - MedicalBackpack
   - Glasses
   - Medals #backmen
-  - Inventory # Corvax-Loadouts
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -731,11 +737,20 @@
 # These loadouts are used for non-crew spawns, like off-station antags and event mobs
 # They will be used without player configuration, thus they will only ever apply what is forced by MinLimit
 
+# gives vox a harness and breathing mask
+# nitrogen tank not included
 - type: roleLoadout
   id: RoleSurvivalVoxSupport
   groups:
   - GroupSpeciesBreathTool
   - GroupTankHarness
+
+# gives vox a nitrogen breathing tank
+# other species get nothing
+- type: roleLoadout
+  id: RoleSurvivalVoxTank
+  groups:
+  - GroupEVATankVox
 
 - type: roleLoadout
   id: RoleSurvivalStandard

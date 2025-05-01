@@ -8,8 +8,8 @@
   markingLimits: MobReptilianMarkingLimits
   dollPrototype: MobReptilianDummy
   skinColoration: Hues
-  maleFirstNames: names_reptilian_male
-  femaleFirstNames: names_reptilian_female
+  maleFirstNames: NamesReptilianMale
+  femaleFirstNames: NamesReptilianFemale
   naming: FirstDashFirst
 
 - type: speciesBaseSprites
@@ -17,7 +17,10 @@
   sprites:
     Head: MobReptilianHead
     Snout: MobHumanoidAnyMarking
-    Chest: MobReptilianTorso
+    Chest: MobReptilianChest
+    Groin: MobReptilianGroin # Backmen edit: chest, groin separation
+    UndergarmentTop: MobHumanoidAnyMarking
+    UndergarmentBottom: MobHumanoidAnyMarking
     HeadTop: MobHumanoidAnyMarking
     HeadSide: MobHumanoidAnyMarking
     Tail: MobHumanoidAnyMarking
@@ -55,6 +58,12 @@
     HeadSide:
       points: 1
       required: false
+    UndergarmentTop:
+      points: 1
+      required: false
+    UndergarmentBottom:
+      points: 1
+      required: false
     Chest:
       points: 3
       required: false
@@ -84,22 +93,40 @@
     state: head_f
 
 - type: humanoidBaseSprite
-  id: MobReptilianTorso
+  id: MobReptilianChest
   baseSprite:
     sprite: Mobs/Species/Reptilian/parts.rsi
-    state: torso_m
+    state: chest_m
 
 - type: humanoidBaseSprite
-  id: MobReptilianTorsoMale
+  id: MobReptilianChestMale
   baseSprite:
     sprite: Mobs/Species/Reptilian/parts.rsi
-    state: torso_m
+    state: chest_m
 
 - type: humanoidBaseSprite
-  id: MobReptilianTorsoFemale
+  id: MobReptilianChestFemale
   baseSprite:
     sprite: Mobs/Species/Reptilian/parts.rsi
-    state: torso_f
+    state: chest_f
+
+- type: humanoidBaseSprite
+  id: MobReptilianGroin
+  baseSprite:
+    sprite: Mobs/Species/Reptilian/parts.rsi
+    state: groin_m
+
+- type: humanoidBaseSprite
+  id: MobReptilianGroinMale
+  baseSprite:
+    sprite: Mobs/Species/Reptilian/parts.rsi
+    state: groin_m
+
+- type: humanoidBaseSprite
+  id: MobReptilianGroinFemale
+  baseSprite:
+    sprite: Mobs/Species/Reptilian/parts.rsi
+    state: groin_f
 
 - type: humanoidBaseSprite
   id: MobReptilianLLeg

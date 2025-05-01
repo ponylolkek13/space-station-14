@@ -10,7 +10,10 @@ namespace Content.Shared.Humanoid
         Tail,
         Hair,
         FacialHair,
+        UndergarmentTop,
+        UndergarmentBottom,
         Chest,
+        Groin,
         Head,
         Snout,
         HeadSide, // side parts (i.e., frills)
@@ -19,7 +22,6 @@ namespace Content.Shared.Humanoid
         RArm,
         LArm,
         RHand,
-
         LHand,
         RLeg,
         LLeg,

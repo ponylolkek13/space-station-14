@@ -66,6 +66,7 @@ namespace Content.Client.Stylesheets
         public const string StyleClassChatChannelSelectorButton = "chatSelectorOptionButton";
         public const string StyleClassChatFilterOptionButton = "chatFilterOptionButton";
         public const string StyleClassStorageButton = "storageButton";
+        public const string StyleClassInset = "Inset";
 
         public const string StyleClassSliderRed = "Red";
         public const string StyleClassSliderGreen = "Green";
@@ -90,37 +91,39 @@ namespace Content.Client.Stylesheets
 
         public static readonly Color PanelDark = Color.FromHex("#1E1E22");
 
-        public static readonly Color NanoGold = Color.FromHex("#A88B5E");
-        public static readonly Color GoodGreenFore = Color.FromHex("#31843E");
+        // BACKMEN-EDIT-COLOURS-START
+        // Rebecca-Purple  - Наш цвет, Цвет бэкмена. Если вы хотите выделить обьект -рекомендуется использовать именно этот цвет
+        public static readonly Color NanoGold = Color.FromHex("#7d41be");
+
+        public static readonly Color GoodGreenFore = Color.FromHex("#663399");
         public static readonly Color ConcerningOrangeFore = Color.FromHex("#A5762F");
         public static readonly Color DangerousRedFore = Color.FromHex("#BB3232");
         public static readonly Color DisabledFore = Color.FromHex("#5A5A5A");
 
-        // BACKMEN EDIT START
-        public static readonly Color ButtonColorDefault = Color.FromHex("#29282f");
-        public static readonly Color ButtonColorDefaultRed = Color.FromHex("#992327");
-        public static readonly Color ButtonColorHovered = Color.FromHex("#3f3d48");
-        public static readonly Color ButtonColorHoveredRed = Color.FromHex("#4D5D53");
-        public static readonly Color ButtonColorPressed = Color.FromHex("#0f0f0f");
-        public static readonly Color ButtonColorDisabled = Color.FromHex("#0f0f0f");
-        // BACKMEN EDIT END
+        public static readonly Color ButtonColorDefault = Color.FromHex("#2D2C33");
+        public static readonly Color ButtonColorHovered = Color.FromHex("#3C3A45");
+        public static readonly Color ButtonColorPressed = Color.FromHex("#15151A");
+        public static readonly Color ButtonColorDisabled = Color.FromHex("#15151A");
 
+        public static readonly Color ButtonColorDefaultRed = Color.FromHex("#A82C2C");
+        public static readonly Color ButtonColorHoveredRed = Color.FromHex("#C02A2A");
 
-        public static readonly Color ButtonColorCautionDefault = Color.FromHex("#ab3232");
-        public static readonly Color ButtonColorCautionHovered = Color.FromHex("#cf2f2f");
-        public static readonly Color ButtonColorCautionPressed = Color.FromHex("#3e6c45");
-        public static readonly Color ButtonColorCautionDisabled = Color.FromHex("#602a2a");
+        public static readonly Color ButtonColorCautionDefault = Color.FromHex("#A82C2C");
+        public static readonly Color ButtonColorCautionHovered = Color.FromHex("#C02A2A");
+        public static readonly Color ButtonColorCautionPressed = Color.FromHex("#3A3A3A");
+        public static readonly Color ButtonColorCautionDisabled = Color.FromHex("#502525");
 
-        public static readonly Color ButtonColorGoodDefault = Color.FromHex("#3E6C45");
-        public static readonly Color ButtonColorGoodHovered = Color.FromHex("#31843E");
+        public static readonly Color ButtonColorGoodDefault = Color.FromHex("#5A2D8F");
+        public static readonly Color ButtonColorGoodHovered = Color.FromHex("#6B3A9F");
+        public static readonly Color ButtonColorGoodDisabled = Color.FromHex("#421F6B");
 
-        //NavMap
-        public static readonly Color PointRed = Color.FromHex("#B02E26");
-        public static readonly Color PointGreen = Color.FromHex("#38b026");
-        public static readonly Color PointMagenta = Color.FromHex("#FF00FF");
+        public static readonly Color PointRed = Color.FromHex("#BB3232");
+        public static readonly Color PointGreen = Color.FromHex("#663399");
+        public static readonly Color PointMagenta = Color.FromHex("#6E6E6E");
 
-        // Context menu button colors
-        public static readonly Color ButtonColorContext = Color.FromHex("#1119");
+        public static readonly Color ButtonColorContext = Color.FromHex("#1E1E1E");
+        // BACKMEN-EDIT-COLOURS-END
+
         public static readonly Color ButtonColorContextHover = Color.DarkSlateGray;
         public static readonly Color ButtonColorContextPressed = Color.LightSlateGray;
         public static readonly Color ButtonColorContextDisabled = Color.Black;
@@ -348,6 +351,16 @@ namespace Content.Client.Stylesheets
             chatFilterButton.SetPatchMargin(StyleBox.Margin.All, 5);
             chatFilterButton.SetPadding(StyleBox.Margin.All, 2);
 
+            var outputPanelScrollDownButtonTex = resCache.GetTexture("/Textures/Interface/Nano/rounded_button_half_bordered.svg.96dpi.png");
+            var outputPanelScrollDownButton = new StyleBoxTexture
+            {
+                Texture = outputPanelScrollDownButtonTex,
+            };
+            outputPanelScrollDownButton.SetPatchMargin(StyleBox.Margin.All, 5);
+            outputPanelScrollDownButton.SetPadding(StyleBox.Margin.All, 2);
+            outputPanelScrollDownButton.SetPadding(StyleBox.Margin.Top, 0);
+            outputPanelScrollDownButton.SetPadding(StyleBox.Margin.Bottom, 0);
+
             var smallButtonTex = resCache.GetTexture("/Textures/Interface/Nano/button_small.svg.96dpi.png");
             var smallButtonBase = new StyleBoxTexture
             {
@@ -436,13 +449,13 @@ namespace Content.Client.Stylesheets
             placeholder.SetExpandMargin(StyleBox.Margin.All, -5);
             placeholder.Mode = StyleBoxTexture.StretchMode.Tile;
 
-            var itemListBackgroundSelected = new StyleBoxFlat { BackgroundColor = new Color(75, 75, 86) };
+            var itemListBackgroundSelected = new StyleBoxFlat { BackgroundColor = new Color(102, 51, 153) };
             itemListBackgroundSelected.SetContentMarginOverride(StyleBox.Margin.Vertical, 2);
             itemListBackgroundSelected.SetContentMarginOverride(StyleBox.Margin.Horizontal, 4);
             var itemListItemBackgroundDisabled = new StyleBoxFlat { BackgroundColor = new Color(10, 10, 12) };
             itemListItemBackgroundDisabled.SetContentMarginOverride(StyleBox.Margin.Vertical, 2);
             itemListItemBackgroundDisabled.SetContentMarginOverride(StyleBox.Margin.Horizontal, 4);
-            var itemListItemBackground = new StyleBoxFlat { BackgroundColor = new Color(55, 55, 68) };
+            var itemListItemBackground = new StyleBoxFlat { BackgroundColor = new Color(31, 30, 36) };
             itemListItemBackground.SetContentMarginOverride(StyleBox.Margin.Vertical, 2);
             itemListItemBackground.SetContentMarginOverride(StyleBox.Margin.Horizontal, 4);
             var itemListItemBackgroundTransparent = new StyleBoxFlat { BackgroundColor = Color.Transparent };
@@ -1350,6 +1363,7 @@ namespace Content.Client.Stylesheets
                 {
                     new StyleProperty(Button.StylePropertyStyleBox, chatChannelButton),
                 }),
+
                 // chat filter button
                 new StyleRule(new SelectorElement(typeof(ContainerButton), new[] {StyleClassChatFilterOptionButton}, null, null), new[]
                 {
@@ -1371,6 +1385,11 @@ namespace Content.Client.Stylesheets
                 {
                     new StyleProperty(Control.StylePropertyModulateSelf, ButtonColorDisabled),
                 }),
+
+                // output panel scroll button
+                Element<Button>()
+                    .Class(OutputPanel.StyleClassOutputPanelScrollDownButton)
+                    .Prop(Button.StylePropertyStyleBox, outputPanelScrollDownButton),
 
                 // OptionButton
                 new StyleRule(new SelectorElement(typeof(OptionButton), null, null, null), new[]
@@ -1443,7 +1462,7 @@ namespace Content.Client.Stylesheets
                 Element<PanelContainer>().Class(ClassLowDivider)
                     .Prop(PanelContainer.StylePropertyPanel, new StyleBoxFlat
                     {
-                        BackgroundColor = Color.FromHex("#25252A"),
+                        BackgroundColor = Color.FromHex("#1E1E24"),
                         ContentMarginLeftOverride = 2,
                         ContentMarginBottomOverride = 2
                     }),
@@ -1543,6 +1562,20 @@ namespace Content.Client.Stylesheets
 
                 Element<Button>().Class("ButtonColorGreen").Pseudo(ContainerButton.StylePseudoClassHover)
                     .Prop(Control.StylePropertyModulateSelf, ButtonColorGoodHovered),
+
+                // Accept button (merge with green button?) ---
+                Element<Button>().Class("ButtonAccept")
+                    .Prop(Control.StylePropertyModulateSelf, ButtonColorGoodDefault),
+
+                Element<Button>().Class("ButtonAccept").Pseudo(ContainerButton.StylePseudoClassNormal)
+                    .Prop(Control.StylePropertyModulateSelf, ButtonColorGoodDefault),
+
+                Element<Button>().Class("ButtonAccept").Pseudo(ContainerButton.StylePseudoClassHover)
+                    .Prop(Control.StylePropertyModulateSelf, ButtonColorGoodHovered),
+
+                Element<Button>().Class("ButtonAccept").Pseudo(ContainerButton.StylePseudoClassDisabled)
+                    .Prop(Control.StylePropertyModulateSelf, ButtonColorGoodDisabled),
+
                 // ---
 
                 // Small Button ---
@@ -1742,8 +1775,10 @@ namespace Content.Client.Stylesheets
                     new[]
                     {
                         new StyleProperty(TextureButton.StylePropertyTexture, resCache.GetTexture("/Textures/Interface/Bwoink/un_pinned.png"))
-                    })
-                    
+                    }),
+                Element<PanelContainer>()
+                    .Class(StyleClassInset)
+                    .Prop(PanelContainer.StylePropertyPanel, insetBack),
             }).ToList());
         }
     }
